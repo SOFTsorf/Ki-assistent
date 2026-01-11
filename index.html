@@ -11,12 +11,12 @@
         :root {
             --accent-green: #00ff88;
             --bg-dark: #0b0b0c;
-            --bubble-user: #2b2c2f;
+            --bubble-user: #007aff; /* Jetzt auch im Dark Mode Blau */
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.1);
-            --header-bg: rgba(11, 11, 12, 0.6); /* Transparenter für besseren Blur */
-            --glass-blur: blur(40px); /* Erhöhter Blur-Effekt */
+            --header-bg: rgba(11, 11, 12, 0.6);
+            --glass-blur: blur(40px);
         }
 
         [data-theme="light"] {
@@ -34,7 +34,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* Eleganter Header mit starkem Blur */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
@@ -67,7 +66,6 @@
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
         
-        /* Elegante Pill mit starkem Blur */
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
             background: var(--header-bg); 
@@ -132,7 +130,7 @@
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir helfen?</div>
+        <div class="bubble ai">NEXUS System bereit. Deine Nachrichten sind jetzt in beiden Modi blau.</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
