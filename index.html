@@ -7,13 +7,7 @@
     
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
-
     <style>
-        /* THEMES */
         :root {
             --accent-green: #00ff88;
             /* Dark Mode (Standard) */
@@ -22,7 +16,7 @@
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.12);
-            --header-bg: rgba(11, 11, 12, 0.75);
+            --header-bg: rgba(11, 11, 12, 0.8);
         }
 
         [data-theme="light"] {
@@ -40,68 +34,56 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        /* Verankerter Header */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
-            background: var(--header-bg); backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--border-glass);
+            background: var(--header-bg); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glass);
             display: flex; align-items: flex-end; justify-content: space-between;
             padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
         }
         
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-bar img { height: 40px; width: auto; border-radius: 6px; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .header-bar img { height: 38px; width: auto; border-radius: 6px; }
 
-        .icon-top-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
+        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
         .icon-top-btn:active { background: var(--border-glass); }
         .icon-top-btn svg { fill: #a0a0a0; width: 22px; }
 
         #chat-area {
-            height: calc(100vh - 120px); 
-            padding: calc(85px + env(safe-area-inset-top)) 20px 20px 20px; 
+            height: 100vh; 
+            padding: calc(85px + env(safe-area-inset-top)) 20px 120px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
-            scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+            box-sizing: border-box; scroll-behavior: smooth;
         }
 
-        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 80%; line-height: 1.6; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); word-wrap: break-word; }
+        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; padding-bottom: 40px; }
-        [data-theme="light"] .user { color: #fff; }
+        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
 
-        .copyright { text-align: center; font-size: 11px; color: rgba(128, 128, 128, 0.4); padding: 10px 0 40px 0; width: 100%; order: 9999; }
+        .copyright { text-align: center; font-size: 11px; color: rgba(128, 128, 128, 0.4); padding: 20px 0; width: 100%; order: 9999; }
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .pill { display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--bubble-ai); backdrop-filter: blur(30px); border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .pill { display: flex; align-items: center; width: 92%; max-width: 600px; background: var(--bubble-ai); backdrop-filter: blur(20px); border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); }
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
-        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .icon-btn svg { fill: #a0a0a0; width: 22px; }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
-
-        /* LIVE OVERLAY */
-        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 0; }
-        .orb-container { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(20px); opacity: 0.4; animation: moveOrb 6s infinite linear; }
         
-        @keyframes moveOrb {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .live-bottom-controls { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        #interrupt-btn { display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 25px; border-radius: 25px; font-size: 14px; cursor: pointer; backdrop-filter: blur(10px); }
-        .live-controls { display: flex; gap: 25px; background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); }
-        .live-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-        .btn-close { background: #eb4444; }
+        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 0; }
+        .orb-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; }
+        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(20px); opacity: 0.4; animation: pulse 4s infinite ease-in-out; }
+        
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.5; } }
+        
+        #interrupt-btn { display: none; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="header-bar">
-        <div class="header-left">
-            <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
-            <div class="icon-top-btn" onclick="toggleTheme()" id="theme-btn">
-                <svg id="theme-icon" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41zm-12.37 12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41z"/></svg>
+        <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
+        <div class="header-right">
+            <div class="icon-top-btn" onclick="toggleTheme()">
+                <svg id="theme-icon" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>
             </div>
             <div class="icon-top-btn" onclick="createNewChat()">
                 <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
@@ -110,164 +92,100 @@
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir helfen?</div>
+        <div class="bubble ai">NEXUS bereit. Modus: Dark (Standard).</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn" id="live-start-btn">
-                <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
+            <div class="icon-btn" onclick="startLive()">
+                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
             </div>
             <input type="text" id="input-field" placeholder="Nachricht..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            </div>
         </div>
     </div>
 
     <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold; font-size: 14px;">NEXUS LIVE</div>
-        <div class="orb-container">
-            <div class="orb-layer"></div><div class="orb-layer"></div><div class="orb-layer"></div>
-        </div>
-        <div class="live-bottom-controls">
-            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
-            <div class="live-controls">
-                <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
-            </div>
-        </div>
+        <div style="color: var(--accent-green); letter-spacing: 2px; font-size: 12px;">LIVE MODUS</div>
+        <div class="orb-container"><div class="orb-layer"></div></div>
+        <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
+        <button onclick="closeLive()" style="background:#eb4444; border:none; color:white; padding:15px; border-radius:50%; margin-bottom:40px;">X</button>
     </div>
 
     <script>
         const API_KEY = "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";
-        let isVoiceSession = false, isLiveActive = false, wakeLock = null, audioCtx = null;
+        let isLive = false;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
+        let recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE';
 
-        // THEME LOGIK
+        // Theme Toggle ohne Speichern
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const target = current === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            updateThemeIcon(target);
-        }
-
-        function updateThemeIcon(theme) {
+            const body = document.documentElement;
             const icon = document.getElementById('theme-icon');
-            if(theme === 'light') {
-                icon.innerHTML = '<path d="M10 2c-1.82 0-3.53.5-5 1.35C7.99 5.08 10 8.3 10 12s-2.01 6.92-5 8.65C6.47 21.5 8.18 22 10 22c5.52 0 10-4.48 10-10S15.52 2 10 2z"/>'; // Mond
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                icon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/>';
             } else {
-                icon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41zm-12.37 12.37c-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41z"/>'; // Sonne
+                body.setAttribute('data-theme', 'light');
+                icon.innerHTML = '<path d="M10 2c-1.82 0-3.53.5-5 1.35C7.99 5.08 10 8.3 10 12s-2.01 6.92-5 8.65C6.47 21.5 8.18 22 10 22c5.52 0 10-4.48 10-10S15.52 2 10 2z"/>';
             }
         }
 
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-
-        function playInterruptSound() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        function interruptAI() {
+            window.speechSynthesis.cancel();
+            document.getElementById('interrupt-btn').style.display = 'none';
+            try { recognition.start(); } catch(e){}
         }
 
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'de-DE';
-            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-            recognition.onend = () => {
-                document.getElementById('mic-btn').classList.remove('active-green');
-                if (isLiveActive && !window.speechSynthesis.speaking) { try { recognition.start(); } catch(e) {} }
-            };
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript.trim().toLowerCase();
-                if (isLiveActive && (transcript === "stop" || transcript === "stopp")) { closeLiveMode(); return; }
-                addMsg(event.results[0][0].transcript, 'user');
-                askAI(event.results[0][0].transcript, isVoiceSession);
-            };
-        }
-
-        async function askAI(text, voice) {
-            const msg = addMsg("...", 'ai');
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": "Bearer " + API_KEY.trim(), "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
-                });
-                const data = await res.json();
-                const answer = data.choices[0].message.content;
-                msg.innerText = answer;
-                if (voice) speak(answer);
-            } catch (e) { msg.innerText = "Fehler!"; }
+        async function askAI(text) {
+            const d = addMsg("...", 'ai');
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
+            });
+            const data = await res.json();
+            const ans = data.choices[0].message.content;
+            d.innerText = ans;
+            if(isLive) speak(ans);
         }
 
         function speak(t) {
-            window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            if(isLiveActive) document.getElementById('interrupt-btn').style.display = 'block';
-            u.onend = () => { 
+            document.getElementById('interrupt-btn').style.display = 'block';
+            u.onend = () => {
                 document.getElementById('interrupt-btn').style.display = 'none';
-                if(isLiveActive) try { recognition.start(); } catch(e) {}
+                if(isLive) recognition.start();
             };
             window.speechSynthesis.speak(u);
-        }
-
-        function interruptAI() {
-            window.speechSynthesis.cancel(); playInterruptSound();
-            document.getElementById('interrupt-btn').style.display = 'none';
-            if (isLiveActive) try { recognition.start(); } catch(e) {}
-        }
-
-        function closeLiveMode() {
-            isLiveActive = false; isVoiceSession = false;
-            document.getElementById('live-overlay').style.display = 'none';
-            document.getElementById('interrupt-btn').style.display = 'none';
-            if (wakeLock) { wakeLock.release(); wakeLock = null; }
-            window.speechSynthesis.cancel();
-            if(recognition) recognition.stop();
         }
 
         function addMsg(t, s) {
             const d = document.createElement('div');
             d.className = `bubble ${s}`; d.innerText = t;
             const area = document.getElementById('chat-area');
-            area.insertBefore(d, document.getElementById('copyright-tag')); 
+            area.insertBefore(d, document.getElementById('copyright-tag'));
             area.scrollTop = area.scrollHeight;
             return d;
         }
 
-        function createNewChat() {
-            const area = document.getElementById('chat-area');
-            const copyright = document.getElementById('copyright-tag');
-            while (area.firstChild && area.firstChild !== copyright) { area.removeChild(area.firstChild); }
-            addMsg("NEXUS System zurückgesetzt. Wie kann ich dir helfen?", 'ai');
-        }
-
-        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; try { recognition.start(); } catch(e) {} };
-        document.getElementById('live-start-btn').onclick = async () => {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            isLiveActive = true; isVoiceSession = true;
-            document.getElementById('live-overlay').style.display = 'flex';
-            if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-            try { recognition.start(); } catch(e) {}
+        recognition.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            if(isLive && t.toLowerCase().includes("stop")) { closeLive(); return; }
+            addMsg(t, 'user');
+            askAI(t);
         };
-        document.getElementById('close-live').onclick = closeLiveMode;
+
+        recognition.onend = () => { if(isLive && !window.speechSynthesis.speaking) recognition.start(); };
+
+        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; recognition.start(); }
+        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
+        function createNewChat() { location.reload(); }
+
         document.getElementById('input-field').onkeypress = (e) => {
-            if (e.key === 'Enter' && e.target.value) {
-                isVoiceSession = false; addMsg(e.target.value, 'user');
-                askAI(e.target.value, false); e.target.value = "";
-            }
+            if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value); e.target.value = ""; }
         };
     </script>
 </body>
