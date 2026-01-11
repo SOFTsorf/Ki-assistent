@@ -123,11 +123,17 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
+        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: fill 0.2s; }
+        
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
+        .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: fill 0.2s, filter 0.2s; }
 
-        /* HAMBURGER ICON STATUS */
+        /* FIX: GRÜNES FEEDBACK FÜR MIKROFON */
+        .active-green svg { 
+            fill: var(--accent-green) !important; 
+            filter: drop-shadow(0 0 8px var(--accent-green)) !important; 
+        }
+
         .green-icon svg { fill: var(--accent-green) !important; }
         .private-icon svg { fill: #888 !important; }
 
@@ -224,7 +230,7 @@
             if(isPrivateMode) {
                 btn.classList.remove('green-icon');
                 btn.classList.add('private-icon');
-                startNewChat(); // Startet sofort einen neuen, ungespeicherten Chat
+                startNewChat();
             } else {
                 btn.classList.add('green-icon');
                 btn.classList.remove('private-icon');
@@ -327,9 +333,17 @@
             window.speechSynthesis.speak(u);
         }
 
-        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
+        function toggleMic() { 
+            isVoiceActive = true; 
+            document.getElementById('mic-btn').classList.add('active-green'); // Sofort-Feedback
+            try { recognition.start(); } catch(e){
+                document.getElementById('mic-btn').classList.remove('active-green');
+            } 
+        }
         
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+        recognition.onstart = () => {
+            document.getElementById('mic-btn').classList.add('active-green');
+        };
         recognition.onend = () => {
             document.getElementById('mic-btn').classList.remove('active-green');
             if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
