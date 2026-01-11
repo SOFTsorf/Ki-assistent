@@ -19,35 +19,58 @@
     <style>
         :root {
             --accent-green: #00ff88;
-            --bg-dark: #0b0b0c;
+            --bg-image: url('https://wallpapers.com/images/hd/whatsapp-chat-background-fb34cc4b2hg9lmix.jpg');
+            --bg-overlay: rgba(11, 11, 12, 0.85); /* Abdunkelung für Lesbarkeit */
             --bubble-user: #007aff; 
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.1);
-            --header-bg: rgba(11, 11, 12, 0.8);
-            --glass-blur: blur(30px);
+            --header-bg: rgba(11, 11, 12, 0.7);
+            --glass-blur: blur(25px);
             --sidebar-width: 280px;
         }
 
         [data-theme="light"] {
-            --bg-dark: #f2f2f7;
+            --bg-image: url('https://i.pinimg.com/1200x/45/87/db/4587dba198ee103cf89c1f9c8828a1f4.jpg');
+            --bg-overlay: rgba(242, 242, 247, 0.7); /* Aufhellung für Lesbarkeit */
             --bubble-user: #007aff;
             --bubble-ai: #ffffff;
             --text-main: #1c1c1e;
             --border-glass: rgba(0, 0, 0, 0.08);
-            --header-bg: rgba(242, 242, 247, 0.8);
+            --header-bg: rgba(242, 242, 247, 0.6);
         }
 
         body, html {
-            margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%;
-            overflow: hidden; transition: background 0.3s;
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            font-family: -apple-system, system-ui, sans-serif;
+            overflow: hidden; transition: 0.3s;
+            background-color: #000;
+        }
+
+        /* HINTERGRUND-LAYER */
+        body::before {
+            content: "";
+            position: fixed; inset: 0;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            transition: background-image 0.4s ease-in-out;
+        }
+
+        body::after {
+            content: "";
+            position: fixed; inset: 0;
+            background: var(--bg-overlay);
+            z-index: -1;
+            transition: background 0.4s;
         }
 
         /* SIDEBAR */
         #sidebar {
             position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
-            background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
+            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-left: 1px solid var(--border-glass); z-index: 2000;
             transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box;
             display: flex; flex-direction: column; gap: 20px;
         }
@@ -72,9 +95,8 @@
             font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             color: var(--text-main); transition: opacity 0.2s;
         }
-        .history-item:active { opacity: 0.7; }
 
-        /* CUSTOM POPUP (MODAL) STYLE */
+        /* POPUP MODAL */
         #custom-modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
             z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;
@@ -82,13 +104,11 @@
         #custom-modal {
             background: var(--bubble-ai); border: 1px solid var(--border-glass);
             padding: 25px; border-radius: 24px; width: 85%; max-width: 320px;
-            text-align: center; transform: scale(0.9); transition: transform 0.3s;
+            text-align: center; transform: scale(0.9); transition: transform 0.3s; color: var(--text-main);
         }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { 
-            flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; 
-        }
-        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: var(--text-main); }
         .btn-confirm { background: #ff4444; color: white; }
 
         .header-bar {
@@ -105,14 +125,6 @@
             padding: calc(85px + env(safe-area-inset-top)) 20px 180px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-        }
-
-        .blur-fade-layer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 180px; z-index: 90;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            mask-image: linear-gradient(to top, black 40%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);
-            pointer-events: none;
         }
 
         .footer { 
@@ -134,9 +146,9 @@
         .ai-container { align-self: flex-start; }
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; color: var(--text-main); }
 
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.6); pointer-events: none; z-index: 101; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -146,7 +158,6 @@
         .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
         .green-icon svg { fill: var(--accent-green) !important; }
-        .private-icon svg { fill: #888 !important; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
 
         #live-overlay { 
@@ -169,7 +180,7 @@
     <div id="custom-modal-overlay">
         <div id="custom-modal">
             <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Verlauf löschen?</div>
-            <div style="font-size: 14px; color: #a0a0a0;">Möchtest du wirklich alle gespeicherten Chats unwiderruflich entfernen?</div>
+            <div style="font-size: 14px; opacity: 0.8;">Möchtest du wirklich alle Chats löschen?</div>
             <div class="modal-btns">
                 <button class="modal-btn btn-cancel" onclick="closeModal()">Abbrechen</button>
                 <button class="modal-btn btn-confirm" onclick="executeClearHistory()">Löschen</button>
@@ -203,8 +214,6 @@
     <div id="chat-area">
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>
     </div>
-
-    <div class="blur-fade-layer"></div>
 
     <div class="footer">
         <div class="pill">
@@ -249,7 +258,6 @@
             overlay.style.display = sb.classList.contains('open') ? 'block' : 'none';
         }
 
-        /* MODAL LOGIC */
         function openModal() {
             const overlay = document.getElementById('custom-modal-overlay');
             overlay.style.display = 'flex';
@@ -263,18 +271,14 @@
         }
         function executeClearHistory() {
             localStorage.removeItem('nexus_chats');
-            renderHistory();
-            startNewChat();
-            closeModal();
-            toggleSidebar();
+            renderHistory(); startNewChat(); closeModal(); toggleSidebar();
         }
 
         function startNewChat() {
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
             document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
-            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+            addBubble(isPrivateMode ? "Privat" : "Wie kann ich helfen?", "ai");
         }
 
         function saveToLocalStorage() {
@@ -348,10 +352,7 @@
 
         function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
         recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => {
-            document.getElementById('mic-btn').classList.remove('active-green');
-            if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
-        };
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
         recognition.onresult = (e) => {
             const t = e.results[0][0].transcript;
             addBubble(t, "user"); askAI(t, isVoiceActive); isVoiceActive = false;
@@ -366,7 +367,10 @@
             }
         };
 
-        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
+        function toggleTheme() { 
+            const hasTheme = document.documentElement.hasAttribute('data-theme');
+            hasTheme ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light');
+        }
     </script>
 </body>
 </html>
