@@ -64,9 +64,12 @@
         .copyright { text-align: center; font-size: 11px; color: rgba(128, 128, 128, 0.4); padding: 20px 0; width: 100%; order: 9999; }
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .pill { display: flex; align-items: center; width: 92%; max-width: 600px; background: var(--bubble-ai); backdrop-filter: blur(20px); border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); }
+        .pill { display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--bubble-ai); backdrop-filter: blur(20px); border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); }
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         
+        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
+
         #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 0; }
         .orb-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; }
         .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(20px); opacity: 0.4; animation: pulse 4s infinite ease-in-out; }
@@ -104,6 +107,9 @@
                 <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
             </div>
             <input type="text" id="input-field" placeholder="Nachricht..." autocomplete="off">
+            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">
+                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
     </div>
 
@@ -117,6 +123,7 @@
     <script>
         const API_KEY = "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";
         let isLive = false;
+        let isVoiceActive = false;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
@@ -133,7 +140,7 @@
             }
         }
 
-        async function askAI(text) {
+        async function askAI(text, useVoice) {
             const d = addMsg("...", 'ai');
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -144,7 +151,7 @@
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
                 d.innerText = ans;
-                if(isLive) speak(ans);
+                if(useVoice || isLive) speak(ans);
             } catch(e) { d.innerText = "Fehler!"; }
         }
 
@@ -152,7 +159,7 @@
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            document.getElementById('interrupt-btn').style.display = 'block';
+            if(isLive) document.getElementById('interrupt-btn').style.display = 'block';
             u.onend = () => {
                 document.getElementById('interrupt-btn').style.display = 'none';
                 if(isLive) try { recognition.start(); } catch(e){}
@@ -160,11 +167,24 @@
             window.speechSynthesis.speak(u);
         }
 
-        function interruptAI() {
-            window.speechSynthesis.cancel();
-            document.getElementById('interrupt-btn').style.display = 'none';
-            if(isLive) try { recognition.start(); } catch(e){}
+        function toggleMic() {
+            isVoiceActive = true;
+            try { recognition.start(); } catch(e){}
         }
+
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+        recognition.onend = () => {
+            document.getElementById('mic-btn').classList.remove('active-green');
+            if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
+        };
+
+        recognition.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            if(isLive && (t.toLowerCase() === "stop" || t.toLowerCase() === "stopp")) { closeLive(); return; }
+            addMsg(t, 'user');
+            askAI(t, isVoiceActive);
+            isVoiceActive = false; 
+        };
 
         function addMsg(t, s) {
             const d = document.createElement('div');
@@ -175,22 +195,15 @@
             return d;
         }
 
-        recognition.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            if(isLive && t.toLowerCase().includes("stop")) { closeLive(); return; }
-            addMsg(t, 'user');
-            askAI(t);
-        };
-
-        recognition.onend = () => { if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){} };
-
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; try { recognition.start(); } catch(e){} }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
         function createNewChat() { location.reload(); }
 
         document.getElementById('input-field').onkeypress = (e) => {
-            if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value); e.target.value = ""; }
+            if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value, false); e.target.value = ""; }
         };
+
+        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) try { recognition.start(); } catch(e){} }
     </script>
 </body>
 </html>
