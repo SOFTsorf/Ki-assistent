@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Voice Pro</title>
+    <title>AI Voice & Code Pro</title>
     <style>
         :root {
             --bg: #080809;
             --accent: #00ff88;
             --glass: rgba(28, 28, 30, 0.7);
-            --border: rgba(255, 255, 255, 0.15);
+            --border: rgba(255, 255, 255, 0.12);
         }
 
         body {
@@ -17,54 +17,60 @@
             font-family: 'Inter', -apple-system, sans-serif; overflow: hidden; height: 100vh;
         }
 
+        /* Chat & Auto-Scroll */
         #chat-area {
             height: calc(100vh - 120px); padding: 20px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
         }
 
         .bubble {
-            padding: 14px 18px; border-radius: 22px; max-width: 85%;
+            padding: 14px 18px; border-radius: 20px; max-width: 85%;
             line-height: 1.6; font-size: 15px; position: relative;
+            animation: slideUp 0.3s ease-out;
         }
         .user { align-self: flex-end; background: #2c2c2e; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: #1c1c1e; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 
-        /* Code Blöcke */
+        /* Code Block Design mit Kopier-Button */
         .code-container { position: relative; margin: 15px 0; }
         pre {
-            background: #000 !important; color: #adbac7; padding: 15px;
-            border-radius: 12px; overflow-x: auto; font-family: 'Consolas', monospace;
+            background: #000 !important; color: #00ff88; padding: 15px;
+            border-radius: 12px; overflow-x: auto; font-family: 'Courier New', monospace;
             border: 1px solid #333; font-size: 13px;
         }
         .copy-btn {
             position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
-            border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
+            border: none; color: white; padding: 5px 10px; border-radius: 6px;
+            font-size: 11px; cursor: pointer; backdrop-filter: blur(5px);
         }
 
-        /* Glass Textbox */
+        /* High-End Glass Textbox */
         .footer { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
         .pill {
             display: flex; align-items: center; width: 92%; max-width: 650px;
-            background: var(--glass); backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            background: var(--glass); backdrop-filter: blur(35px) saturate(180%);
+            -webkit-backdrop-filter: blur(35px) saturate(180%);
             border-radius: 35px; padding: 8px 20px;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .pill:focus-within { transform: scale(1.02); border-color: var(--accent); }
 
         input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 10px; }
         
-        .icon-btn { cursor: pointer; padding: 10px; transition: 0.3s; display: flex; align-items: center; }
+        .icon-btn { cursor: pointer; padding: 10px; opacity: 0.7; transition: 0.3s; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; transition: 0.3s; }
 
         /* Mikrofon Aktiv Status */
         .active-green svg { 
             fill: var(--accent) !important; 
-            filter: drop-shadow(0 0 12px var(--accent)); 
+            filter: drop-shadow(0 0 10px var(--accent)); 
         }
 
         b { color: #fff; font-weight: 600; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -72,7 +78,7 @@
     <div id="chat-area"></div>
 
     <div class="footer">
-        <div class="pill" id="input-pill">
+        <div class="pill">
             <div class="icon-btn" id="live-toggle-btn">
                 <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
             </div>
@@ -85,10 +91,16 @@
 
     <script>
         const API_KEY = "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";
-        let isLiveMode = false; // Steuert, ob der Bot automatisch spricht
+        let isLiveVoice = false;
 
-        // Markdown & Code Parser
-        function parseContent(text) {
+        // Auto-Scroll Funktion
+        function scrollToBottom() {
+            const chat = document.getElementById('chat-area');
+            chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+        }
+
+        // Markdown Parser (Fett & Code)
+        function parseMarkdown(text) {
             let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
                 const id = 'code-' + Math.random().toString(36).substr(2, 9);
@@ -101,13 +113,12 @@
         }
 
         function copyCode(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText);
-            alert("Code kopiert!");
-        }
-
-        function scrollToBottom() {
-            const chat = document.getElementById('chat-area');
-            chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+            const code = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(code);
+            // Kleiner visueller Effekt beim Kopieren
+            const btn = document.querySelector(`button[onclick="copyCode('${id}')"]`);
+            btn.innerText = "Kopiert!";
+            setTimeout(() => btn.innerText = "Kopieren", 2000);
         }
 
         async function askAI(text, shouldSpeak) {
@@ -117,7 +128,7 @@
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
-                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                    headers: { "Authorization": "Bearer " + API_KEY.trim(), "Content-Type": "application/json" },
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: [{ role: "user", content: text }]
@@ -126,11 +137,11 @@
 
                 const data = await res.json();
                 const answer = data.choices[0].message.content;
-                aiMsg.innerHTML = parseContent(answer);
+                aiMsg.innerHTML = parseMarkdown(answer);
                 
                 if (shouldSpeak) speak(answer);
                 scrollToBottom();
-            } catch (e) { aiMsg.innerText = "Fehler!"; }
+            } catch (e) { aiMsg.innerText = "Fehler bei der Verbindung!"; }
         }
 
         function addMsg(t, s) {
@@ -141,40 +152,6 @@
             return d;
         }
 
-        // Voice Recognition Logik
-        const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new Rec();
-        recognition.lang = 'de-DE';
-
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
-        
-        recognition.onresult = (e) => {
-            const text = e.results[0][0].transcript;
-            addMsg(text, 'user');
-            askAI(text, isLiveMode);
-        };
-
-        // Event Listener
-        document.getElementById('mic-btn').onclick = () => {
-            isLiveMode = true; // Mic Button aktiviert Live-Sprache
-            recognition.start();
-        };
-
-        document.getElementById('live-toggle-btn').onclick = function() {
-            isLiveMode = !isLiveMode;
-            this.classList.toggle('active-green', isLiveMode);
-        };
-
-        document.getElementById('input-field').onkeypress = (e) => {
-            if (e.key === 'Enter' && e.target.value) {
-                isLiveMode = false; // Tippen deaktiviert automatisches Sprechen
-                addMsg(e.target.value, 'user');
-                askAI(e.target.value, false);
-                e.target.value = "";
-            }
-        };
-
         function speak(t) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
@@ -182,10 +159,39 @@
             window.speechSynthesis.speak(u);
         }
 
-        function copyCode(id) {
-            const code = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(code);
+        // Voice Recognition Logik
+        const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (Rec) {
+            const recognition = new Rec();
+            recognition.lang = 'de-DE';
+
+            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+            recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+            
+            recognition.onresult = (e) => {
+                const text = e.results[0][0].transcript;
+                addMsg(text, 'user');
+                askAI(text, isLiveVoice || true); // Mikrofon-Nutzung triggert immer Sprache
+            };
+
+            document.getElementById('mic-btn').onclick = () => recognition.start();
         }
+
+        // Live Toggle (Stern Icon)
+        document.getElementById('live-toggle-btn').onclick = function() {
+            isLiveVoice = !isLiveVoice;
+            this.classList.toggle('active-green', isLiveVoice);
+        };
+
+        // Text Eingabe
+        document.getElementById('input-field').onkeypress = (e) => {
+            if (e.key === 'Enter' && e.target.value) {
+                const text = e.target.value;
+                addMsg(text, 'user');
+                askAI(text, isLiveVoice); // Nur sprechen wenn Live-Modus an
+                e.target.value = "";
+            }
+        };
     </script>
 </body>
 </html>
