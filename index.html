@@ -100,10 +100,27 @@
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
         .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
+        /* LIVE MODUS OVERLAY */
         #live-overlay { 
             position: fixed; inset: 0; background: #000; z-index: 2000; 
             display: none; flex-direction: column; align-items: center; 
             justify-content: space-between; padding: 100px 0 60px 0; 
+        }
+        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+        .orb-layer { 
+            position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
+            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
+            filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
+        }
+        @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+        
+        #interrupt-btn { 
+            display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; padding: 14px 28px; border-radius: 30px; cursor: pointer; backdrop-filter: blur(10px); 
+        }
+        .btn-close-live { 
+            width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; 
         }
     </style>
 </head>
@@ -126,7 +143,7 @@
 
     <div id="chat-area">
         <div class="bubble-container ai-container">
-            <div class="bubble ai">System bereit. Wie kann ich helfen?</div>
+            <div class="bubble ai">NEXUS PRO bereit. Alle Funktionen inklusive Live-Modus sind aktiv.</div>
         </div>
         <div id="typing" class="typing-indicator">NEXUS denkt nach...</div>
     </div>
@@ -144,11 +161,32 @@
         <div class="copyright">(c) 2026 - by Patrick Roth</div>
     </div>
 
+    <div id="live-overlay">
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODUS</div>
+        <div class="orb-container">
+            <div class="orb-layer"></div>
+            <div class="orb-layer" style="animation-duration: 4s; opacity: 0.3;"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
+            <button class="btn-close-live" onclick="closeLive()">
+                <svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
+    </div>
+
     <script>
         const API_KEY = "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";
         let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch. Nutze Markdown."}];
+        let isLive = false;
+        let isVoiceActive = false;
 
-        async function askAI(text) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE';
+        recognition.continuous = false;
+
+        async function askAI(text, useVoice) {
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
             const aiMsgContainer = addMsg("", 'ai');
@@ -158,13 +196,17 @@
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                    body: JSON.stringify({ 
+                        model: "llama-3.3-70b-versatile", 
+                        messages: chatHistory.slice(-10) 
+                    })
                 });
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
                 chatHistory.push({role: "assistant", content: ans});
                 aiBubble.innerHTML = marked.parse(ans);
-            } catch(e) { aiBubble.innerText = "Fehler."; }
+                if(useVoice || isLive) speak(ans);
+            } catch(e) { aiBubble.innerText = "Fehler bei der Verbindung."; }
             document.getElementById('typing').style.display = 'none';
         }
 
@@ -179,6 +221,37 @@
             return cont;
         }
 
+        function speak(t) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'de-DE';
+            if(isLive) document.getElementById('interrupt-btn').style.display = 'block';
+            u.onend = () => {
+                document.getElementById('interrupt-btn').style.display = 'none';
+                if(isLive) try { recognition.start(); } catch(e){}
+            };
+            window.speechSynthesis.speak(u);
+        }
+
+        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
+        
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+        recognition.onend = () => {
+            document.getElementById('mic-btn').classList.remove('active-green');
+            if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
+        };
+        recognition.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            if(isLive && t.toLowerCase().includes("stop")) { closeLive(); return; }
+            addMsg(t, 'user');
+            askAI(t, isVoiceActive);
+            isVoiceActive = false;
+        };
+
+        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
+        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
+        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) toggleMic(); }
+
         function toggleTheme() {
             const body = document.documentElement;
             const icon = document.getElementById('theme-icon');
@@ -192,15 +265,8 @@
         }
 
         document.getElementById('input-field').onkeypress = (e) => {
-            if(e.key === 'Enter' && e.target.value) { 
-                addMsg(e.target.value, 'user'); 
-                askAI(e.target.value); 
-                e.target.value = ""; 
-            }
+            if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value, false); e.target.value = ""; }
         };
-
-        function startLive() { alert("Live Modus gestartet (Demo)"); }
-        function toggleMic() { alert("Mikrofon aktiviert (Demo)"); }
     </script>
 </body>
 </html>
