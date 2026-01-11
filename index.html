@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Vision & Code Pro</title>
+    <title>AI Voice Pro</title>
     <style>
         :root {
             --bg: #080809;
             --accent: #00ff88;
             --glass: rgba(28, 28, 30, 0.7);
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
         body {
@@ -17,60 +17,54 @@
             font-family: 'Inter', -apple-system, sans-serif; overflow: hidden; height: 100vh;
         }
 
-        /* Chat & Auto-Scroll */
         #chat-area {
             height: calc(100vh - 120px); padding: 20px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
         }
 
         .bubble {
-            padding: 14px 18px; border-radius: 20px; max-width: 85%;
+            padding: 14px 18px; border-radius: 22px; max-width: 85%;
             line-height: 1.6; font-size: 15px; position: relative;
-            animation: slideUp 0.3s ease-out;
         }
         .user { align-self: flex-end; background: #2c2c2e; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: #1c1c1e; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
 
-        /* Code Block Design */
+        /* Code Blöcke */
+        .code-container { position: relative; margin: 15px 0; }
         pre {
-            background: #000 !important; color: #00ff88; padding: 15px;
-            border-radius: 12px; overflow-x: auto; font-family: 'Courier New', monospace;
-            border: 1px solid #333; margin: 10px 0; font-size: 13px;
+            background: #000 !important; color: #adbac7; padding: 15px;
+            border-radius: 12px; overflow-x: auto; font-family: 'Consolas', monospace;
+            border: 1px solid #333; font-size: 13px;
+        }
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
+            border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
         }
 
-        /* High-End Glass Textbox */
+        /* Glass Textbox */
         .footer { position: fixed; bottom: 25px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
         .pill {
-            display: flex; align-items: center; width: 92%; max-width: 600px;
-            background: var(--glass); backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            display: flex; align-items: center; width: 92%; max-width: 650px;
+            background: var(--glass); backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
             border-radius: 35px; padding: 8px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0 10px rgba(255,255,255,0.05);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: 0.3s;
         }
-        .pill:focus-within { transform: scale(1.02); border-color: var(--accent); }
 
         input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 10px; }
-        .icon-btn { cursor: pointer; padding: 10px; opacity: 0.7; transition: 0.2s; }
-        .icon-btn:hover { opacity: 1; }
-        .active-green svg { fill: var(--accent) !important; filter: drop-shadow(0 0 8px var(--accent)); }
+        
+        .icon-btn { cursor: pointer; padding: 10px; transition: 0.3s; display: flex; align-items: center; }
+        .icon-btn svg { fill: #a0a0a0; transition: 0.3s; }
 
-        /* Live Vision Overlay */
-        #live-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 2000;
-            display: none; flex-direction: column; align-items: center; justify-content: space-between;
+        /* Mikrofon Aktiv Status */
+        .active-green svg { 
+            fill: var(--accent) !important; 
+            filter: drop-shadow(0 0 12px var(--accent)); 
         }
-        #video-feed { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .live-controls {
-            z-index: 2001; margin-bottom: 40px; display: flex; gap: 20px;
-            background: rgba(0,0,0,0.6); padding: 15px 30px; border-radius: 50px;
-            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .btn { width: 55px; height: 55px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-cam { background: #333; } .btn-close { background: #ff4b4b; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        b { color: #fff; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -78,113 +72,120 @@
     <div id="chat-area"></div>
 
     <div class="footer">
-        <div class="pill">
-            <div class="icon-btn" id="live-start-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg></div>
+        <div class="pill" id="input-pill">
+            <div class="icon-btn" id="live-toggle-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
+            </div>
             <input type="text" id="input-field" placeholder="Frag mich etwas..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="#a0a0a0"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
-        </div>
-    </div>
-
-    <div id="live-overlay">
-        <video id="video-feed" autoplay playsinline muted></video>
-        <canvas id="vision-canvas" style="display:none;"></canvas>
-        <div style="z-index:2001; margin-top:50px; color:var(--accent); font-weight:bold; letter-spacing:2px;">VISION ACTIVE</div>
-        <div class="live-controls">
-            <button class="btn btn-cam" id="capture-btn"><svg viewBox="0 0 24 24" width="24" fill="white"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg></button>
-            <button class="btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="24" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            <div class="icon-btn" id="mic-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
     </div>
 
     <script>
         const API_KEY = "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";
-        let stream = null;
+        let isLiveMode = false; // Steuert, ob der Bot automatisch spricht
 
-        // Auto-Scroll Funktion
+        // Markdown & Code Parser
+        function parseContent(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
+                const id = 'code-' + Math.random().toString(36).substr(2, 9);
+                return `<div class="code-container">
+                            <button class="copy-btn" onclick="copyCode('${id}')">Kopieren</button>
+                            <pre><code id="${id}">${code.trim()}</code></pre>
+                        </div>`;
+            });
+            return html;
+        }
+
+        function copyCode(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+            alert("Code kopiert!");
+        }
+
         function scrollToBottom() {
             const chat = document.getElementById('chat-area');
-            chat.scrollTop = chat.scrollHeight;
+            chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
         }
 
-        // Code Blöcke formatieren
-        function formatText(text) {
-            return text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-        }
-
-        async function askAI(text, voice = false, imageData = null) {
-            const chat = document.getElementById('chat-area');
+        async function askAI(text, shouldSpeak) {
             const aiMsg = addMsg("...", 'ai');
             scrollToBottom();
 
             try {
-                let bodyData = {
-                    model: imageData ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
-                    messages: [{
-                        role: "user",
-                        content: imageData ? [
-                            { type: "text", text: text || "Was siehst du hier?" },
-                            { type: "image_url", image_url: { url: imageData } }
-                        ] : text
-                    }]
-                };
-
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify(bodyData)
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [{ role: "user", content: text }]
+                    })
                 });
 
                 const data = await res.json();
                 const answer = data.choices[0].message.content;
-                aiMsg.innerHTML = formatText(answer);
-                if (voice) speak(answer);
+                aiMsg.innerHTML = parseContent(answer);
+                
+                if (shouldSpeak) speak(answer);
                 scrollToBottom();
             } catch (e) { aiMsg.innerText = "Fehler!"; }
         }
 
-        // Vision Capture
-        document.getElementById('capture-btn').onclick = () => {
-            const canvas = document.getElementById('vision-canvas');
-            const video = document.getElementById('video-feed');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
-            askAI("Beschreibe was du siehst kurz und knackig.", true, dataUrl);
-        };
-
-        // UI & Kamera Logik
-        document.getElementById('live-start-btn').onclick = async () => {
-            document.getElementById('live-overlay').style.display = 'flex';
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            document.getElementById('video-feed').srcObject = stream;
-        };
-
-        document.getElementById('close-live').onclick = () => {
-            document.getElementById('live-overlay').style.display = 'none';
-            if(stream) stream.getTracks().forEach(t => t.stop());
-        };
-
         function addMsg(t, s) {
             const d = document.createElement('div');
             d.className = `bubble ${s}`;
-            d.innerText = t;
+            d.innerHTML = t;
             document.getElementById('chat-area').appendChild(d);
             return d;
         }
 
-        function speak(t) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE';
-            window.speechSynthesis.speak(u);
-        }
+        // Voice Recognition Logik
+        const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new Rec();
+        recognition.lang = 'de-DE';
+
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+        
+        recognition.onresult = (e) => {
+            const text = e.results[0][0].transcript;
+            addMsg(text, 'user');
+            askAI(text, isLiveMode);
+        };
+
+        // Event Listener
+        document.getElementById('mic-btn').onclick = () => {
+            isLiveMode = true; // Mic Button aktiviert Live-Sprache
+            recognition.start();
+        };
+
+        document.getElementById('live-toggle-btn').onclick = function() {
+            isLiveMode = !isLiveMode;
+            this.classList.toggle('active-green', isLiveMode);
+        };
 
         document.getElementById('input-field').onkeypress = (e) => {
             if (e.key === 'Enter' && e.target.value) {
+                isLiveMode = false; // Tippen deaktiviert automatisches Sprechen
                 addMsg(e.target.value, 'user');
                 askAI(e.target.value, false);
                 e.target.value = "";
             }
         };
+
+        function speak(t) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'de-DE';
+            window.speechSynthesis.speak(u);
+        }
+
+        function copyCode(id) {
+            const code = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(code);
+        }
     </script>
 </body>
 </html>
