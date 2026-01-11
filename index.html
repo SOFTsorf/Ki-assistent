@@ -46,10 +46,11 @@
         }
         
         .header-bar img { height: 38px; border-radius: 6px; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
 
         #chat-area {
             position: absolute; inset: 0;
-            padding: calc(80px + env(safe-area-inset-top)) 20px 150px 20px; 
+            padding: calc(85px + env(safe-area-inset-top)) 20px 150px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
@@ -80,7 +81,7 @@
         .time-tag { font-size: 10px; opacity: 0.4; margin-top: 5px; padding: 0 8px; }
         .user-container .time-tag { text-align: right; }
 
-        .typing-indicator { font-size: 13px; color: var(--accent-green); display: none; margin-bottom: 10px; }
+        .typing-indicator { font-size: 13px; color: var(--accent-green); display: none; margin-bottom: 10px; font-weight: 500; }
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; }
         
@@ -91,9 +92,13 @@
         }
         
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
-        .icon-btn { cursor: pointer; padding: 8px; }
+        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
 
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; }
+
+        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
+        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
         #live-overlay { 
             position: fixed; inset: 0; background: #000; z-index: 2000; 
@@ -106,9 +111,16 @@
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
-        <div style="display: flex; gap: 15px;">
-            <span onclick="toggleTheme()" style="cursor:pointer; font-size: 20px;">🌓</span>
-            <span onclick="location.reload()" style="cursor:pointer; font-size: 20px;">🔄</span>
+        <div class="header-right">
+            <div class="icon-top-btn" onclick="toggleTheme()">
+                <svg id="theme-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="icon-top-btn" onclick="location.reload()">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+            </div>
         </div>
     </div>
 
@@ -121,15 +133,16 @@
 
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn" onclick="startLive()">🚀</div>
+            <div class="icon-btn" onclick="startLive()">
+                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
+            </div>
             <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">🎤</div>
+            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">
+                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
         <div class="copyright">(c) 2026 - by Patrick Roth</div>
     </div>
-
-    <div id="live-overlay">
-        </div>
 
     <script>
         const API_KEY = "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";
@@ -167,7 +180,15 @@
         }
 
         function toggleTheme() {
-            document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light');
+            const body = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (body.hasAttribute('data-theme')) {
+                body.removeAttribute('data-theme');
+                icon.innerHTML = '<circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>';
+            }
         }
 
         document.getElementById('input-field').onkeypress = (e) => {
@@ -177,6 +198,9 @@
                 e.target.value = ""; 
             }
         };
+
+        function startLive() { alert("Live Modus gestartet (Demo)"); }
+        function toggleMic() { alert("Mikrofon aktiviert (Demo)"); }
     </script>
 </body>
 </html>
