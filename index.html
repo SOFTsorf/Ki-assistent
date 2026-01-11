@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <title>NEXUS AI - PRO</title>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
@@ -24,42 +21,13 @@
             --sidebar-width: 280px;
         }
 
-        [data-theme="light"] {
-            --bg-dark: #f2f2f7;
-            --bubble-user: #007aff;
-            --bubble-ai: #ffffff;
-            --text-main: #1c1c1e;
-            --border-glass: rgba(0, 0, 0, 0.08);
-            --header-bg: rgba(242, 242, 247, 0.85);
-        }
-
         body, html {
             margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main);
             font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%;
-            overflow: hidden; transition: background 0.3s;
+            overflow: hidden;
         }
 
-        /* SIDEBAR & MODAL */
-        #sidebar {
-            position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
-            background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
-            transition: right 0.3s ease; padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box;
-            display: flex; flex-direction: column;
-        }
-        #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
-        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
-        
-        #custom-modal {
-            position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
-        }
-        .modal-content {
-            width: 85%; max-width: 320px; background: var(--header-bg); border: 1px solid var(--border-glass);
-            border-radius: 24px; padding: 25px; text-align: center; color: var(--text-main);
-        }
-        #custom-modal.show { display: flex; }
-
-        /* HEADER & CHAT */
+        /* HEADER */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top));
             background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
@@ -72,75 +40,95 @@
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;
         }
 
-        /* BUBBLES */
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; position: relative; }
-        .user-container { align-self: flex-end; }
-        .ai-container { align-self: flex-start; }
-        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; position: relative; padding-bottom: 25px; }
-        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
-        .time-stamp { position: absolute; bottom: 6px; right: 12px; font-size: 9px; opacity: 0.5; }
+        /* LIVE MODUS OVERLAY */
+        #live-overlay {
+            position: fixed; inset: 0; background: var(--bg-dark); z-index: 4000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(50px); animation: fadeIn 0.4s ease;
+        }
+        .live-status { color: var(--accent-green); font-size: 20px; font-weight: bold; margin-top: 30px; letter-spacing: 1px; }
+        .live-circle {
+            width: 120px; height: 120px; border-radius: 50%; background: var(--accent-green);
+            box-shadow: 0 0 40px var(--accent-green); animation: pulse 2s infinite;
+        }
+        .close-live {
+            position: absolute; bottom: 50px; padding: 15px 40px; border-radius: 30px;
+            background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass);
+            color: white; font-weight: bold; cursor: pointer;
+        }
 
-        /* FOOTER MIT FIXIERTEM BLUR-HINTERGRUND */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px var(--accent-green); }
+            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 60px var(--accent-green); }
+            100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px var(--accent-green); }
+        }
+
+        /* MODAL */
+        #custom-modal {
+            position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+        }
+        .modal-content {
+            width: 85%; max-width: 320px; background: var(--header-bg); border: 1px solid var(--border-glass);
+            border-radius: 24px; padding: 25px; text-align: center;
+        }
+
+        /* FOOTER & BLUR */
         .footer { 
             position: fixed; bottom: 0; left: 0; width: 100%; 
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            padding-top: 20px;
-            background: linear-gradient(to top, var(--bg-dark) 40%, transparent);
+            padding-top: 30px;
+            background: linear-gradient(to top, var(--bg-dark) 60%, transparent);
             backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             display: flex; flex-direction: column; align-items: center; z-index: 1000;
         }
         
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: rgba(255,255,255,0.05); border-radius: 30px; padding: 6px 15px; 
+            background: rgba(255,255,255,0.08); border-radius: 30px; padding: 6px 15px; 
             border: 1px solid var(--border-glass); 
         }
 
-        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
+        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 12px; }
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); margin-top: 10px; }
 
-        /* ICONS */
-        .icon-btn, .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; transition: transform 0.1s; }
-        .icon-btn:active { transform: scale(0.9); }
+        /* BUBBLES */
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; position: relative; }
+        .user-container { align-self: flex-end; }
+        .ai-container { align-self: flex-start; }
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; position: relative; padding-bottom: 25px; }
+        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
+        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        .time-stamp { position: absolute; bottom: 6px; right: 12px; font-size: 9px; opacity: 0.5; }
+
         .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
         .live-icon svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
-
-        /* SIDEBAR BUTTONS */
-        .delete-all-btn {
-            background: rgba(235, 68, 68, 0.1); color: #eb4444; border: 1px solid rgba(235, 68, 68, 0.2);
-            padding: 12px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer;
-            text-align: center; margin-top: auto; margin-bottom: 20px;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body onload="initApp()">
 
+    <div id="live-overlay">
+        <div class="live-circle"></div>
+        <div class="live-status" id="live-text">NEXUS hört zu...</div>
+        <div id="live-transcript" style="margin-top:20px; padding:0 30px; text-align:center; opacity:0.7;"></div>
+        <button class="close-live" onclick="stopLiveMode()">Beenden</button>
+    </div>
+
     <div id="custom-modal">
         <div class="modal-content">
-            <h3 style="color:#eb4444; margin-top:0;">Verlauf löschen?</h3>
-            <p style="font-size:14px; opacity:0.8;">Alle alten Chats werden dauerhaft entfernt.</p>
+            <h3 style="color:#eb4444; margin:0 0 10px 0;">Verlauf löschen?</h3>
+            <p style="font-size:14px; opacity:0.8;">Alle Daten werden unwiderruflich gelöscht.</p>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                <button onclick="confirmClear()" style="background:#eb4444; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">Alles löschen</button>
+                <button onclick="confirmClear()" style="background:#eb4444; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">Löschen</button>
                 <button onclick="closeModal()" style="background:rgba(255,255,255,0.1); color:white; border:none; padding:12px; border-radius:12px;">Abbrechen</button>
             </div>
         </div>
     </div>
 
-    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
-    <div id="sidebar">
-        <div style="margin-top: 60px; font-size: 14px; color: var(--accent-green); font-weight: bold;">VERLAUF</div>
-        <div id="history-list" style="flex:1; overflow-y:auto; margin-top:15px;"></div>
-        <div class="delete-all-btn" onclick="openModal()">Verlauf leeren</div>
-    </div>
-
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
-        <div style="display: flex; gap: 5px;">
-            <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
-            <div class="icon-top-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" style="fill:var(--accent-green)"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
-        </div>
+        <div class="icon-btn" onclick="openModal()"><svg viewBox="0 0 24 24" style="fill:#eb4444; width:20px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
     </div>
 
     <div id="chat-area">
@@ -149,57 +137,59 @@
 
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn live-icon" onclick="toggleMic()">
+            <div class="icon-btn live-icon" onclick="startLiveMode()">
                 <svg viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>
             </div>
             <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">
-                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            </div>
+            <div class="icon-btn" onclick="startMicOnly()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
         <div class="copyright">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <script>
         const API_KEY = "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";
-        let chatHistory = [];
+        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
+        recognition.interimResults = true;
 
-        function initApp() { renderHistory(); startNewChat(); }
+        function initApp() { addBubble("Bereit für den Chat.", "ai"); }
 
-        function openModal() { document.getElementById('custom-modal').classList.add('show'); }
-        function closeModal() { document.getElementById('custom-modal').classList.remove('show'); }
-        
-        function confirmClear() {
-            localStorage.removeItem('nexus_chats');
-            renderHistory();
-            startNewChat();
-            closeModal();
-            toggleSidebar();
+        function openModal() { document.getElementById('custom-modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('custom-modal').style.display = 'none'; }
+        function confirmClear() { localStorage.clear(); location.reload(); }
+
+        /* LIVE MODUS LOGIK */
+        function startLiveMode() {
+            document.getElementById('live-overlay').style.display = 'flex';
+            recognition.start();
         }
 
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('open');
-            document.querySelector('.sidebar-overlay').style.display = sb.classList.contains('open') ? 'block' : 'none';
+        function stopLiveMode() {
+            recognition.stop();
+            document.getElementById('live-overlay').style.display = 'none';
         }
 
-        function startNewChat() {
-            chatHistory = [{role: "system", content: "Antworte kurz."}];
-            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px;">NEXUS denkt nach...</div>';
-            addBubble("Bereit für deine Fragen.", "ai");
-        }
+        function startMicOnly() { recognition.start(); }
 
-        function addBubble(text, side) {
-            const area = document.getElementById('chat-area');
-            const cont = document.createElement('div');
-            cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}<span class="time-stamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
-            area.insertBefore(cont, document.getElementById('typing'));
-            area.scrollTop = area.scrollHeight;
-        }
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            document.getElementById('live-transcript').innerText = transcript;
+            if(e.results[0].isFinal) {
+                addBubble(transcript, "user");
+                askAI(transcript);
+                if(document.getElementById('live-overlay').style.display === 'flex') {
+                    document.getElementById('live-text').innerText = "NEXUS antwortet...";
+                }
+            }
+        };
+
+        recognition.onend = () => {
+            if(document.getElementById('live-overlay').style.display === 'flex') {
+                setTimeout(() => recognition.start(), 1000); // Automatischer Restart im Live-Modus
+            }
+        };
 
         async function askAI(text) {
             document.getElementById('typing').style.display = 'block';
@@ -214,46 +204,29 @@
                 const ans = data.choices[0].message.content;
                 chatHistory.push({role: "assistant", content: ans});
                 addBubble(ans, "ai");
-                saveChat();
+                if(document.getElementById('live-overlay').style.display === 'flex') {
+                    document.getElementById('live-text').innerText = "NEXUS hört zu...";
+                    speak(ans);
+                }
             } catch(e) {}
             document.getElementById('typing').style.display = 'none';
         }
 
-        function saveChat() {
-            let chats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            chats[Date.now()] = { title: chatHistory[1].content.substring(0,30), messages: chatHistory };
-            localStorage.setItem('nexus_chats', JSON.stringify(chats));
-            renderHistory();
+        function speak(text) {
+            const synth = window.speechSynthesis;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'de-DE';
+            synth.speak(utter);
         }
 
-        function renderHistory() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '';
-            let chats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            Object.keys(chats).reverse().forEach(id => {
-                const div = document.createElement('div');
-                div.style = "padding:12px; background:var(--bubble-ai); border-radius:10px; margin-bottom:8px; font-size:14px; cursor:pointer;";
-                div.innerText = chats[id].title;
-                div.onclick = () => {
-                    chatHistory = chats[id].messages;
-                    document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px;">NEXUS denkt nach...</div>';
-                    chatHistory.forEach(m => { if(m.role !== 'system') addBubble(m.content, m.role === 'user' ? 'user' : 'ai'); });
-                    toggleSidebar();
-                };
-                list.appendChild(div);
-            });
+        function addBubble(text, side) {
+            const area = document.getElementById('chat-area');
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${side}-container`;
+            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}<span class="time-stamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+            area.insertBefore(cont, document.getElementById('typing'));
+            area.scrollTop = area.scrollHeight;
         }
-
-        function toggleMic() {
-            document.getElementById('mic-btn').classList.add('active-green');
-            recognition.start();
-        }
-        recognition.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            addBubble(t, "user");
-            askAI(t);
-        };
-        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) {
