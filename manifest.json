@@ -1,5 +1,5 @@
 {
-  "name": "AI Professional Assistant",
+  "name": "AI Professional Assistant - by Patrick Roth",
   "short_name": "AI Assistant",
   "start_url": "index.html",
   "display": "standalone",
@@ -7,7 +7,7 @@
   "theme_color": "#0b0b0c",
   "icons": [
     {
-      "src": "https://www.shutterstock.com/image-vector/artificial-intelligence-ai-pictogram-technology-600nw-2514391345.jpg",
+      "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrhsTKAXNwZ6ajaacPTLZW_0_Zi4Sb5f75TQ&usqp=CAU",
       "sizes": "512x512",
       "type": "image/jpeg"
     }
