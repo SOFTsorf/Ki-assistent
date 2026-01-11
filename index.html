@@ -98,7 +98,6 @@
 
         .live-bottom-controls { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        /* UNTERBRECHEN BUTTON */
         #interrupt-btn {
             display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-glass);
             color: white; padding: 12px 25px; border-radius: 25px; font-size: 14px;
@@ -156,9 +155,30 @@
         const API_KEY = "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";
         let isVoiceSession = false;
         let wakeLock = null;
+        let audioCtx = null;
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
+
+        // Ton-Generator für den Interrupt-Sound
+        function playInterruptSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Hoher Ton
+            oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1); // Slide nach unten
+
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
 
         async function requestWakeLock() {
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
@@ -204,7 +224,6 @@
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
             
-            // Button einblenden wenn KI spricht
             if(document.getElementById('live-overlay').style.display === 'flex') {
                 document.getElementById('interrupt-btn').style.display = 'block';
             }
@@ -217,10 +236,11 @@
         }
 
         function interruptAI() {
-            window.speechSynthesis.cancel(); // Stoppt die Stimme sofort
+            window.speechSynthesis.cancel(); 
+            playInterruptSound(); // Ton abspielen
             document.getElementById('interrupt-btn').style.display = 'none';
             if (recognition) {
-                try { recognition.start(); } catch(e) {} // Startet Mikrofon neu
+                try { recognition.start(); } catch(e) {} 
             }
         }
 
@@ -235,6 +255,7 @@
 
         document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; recognition.start(); };
         document.getElementById('live-start-btn').onclick = () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); // Init Audio
             document.getElementById('live-overlay').style.display = 'flex';
             isVoiceSession = true; requestWakeLock(); recognition.start();
         };
