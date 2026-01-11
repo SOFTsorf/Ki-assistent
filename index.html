@@ -19,10 +19,17 @@
             font-family: -apple-system, system-ui, sans-serif; overflow: hidden; height: 100vh;
         }
 
+        /* Chat Bereich - Fix für Überblendung */
         #chat-area {
-            height: calc(100vh - 110px); padding: 20px; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 20px;
+            height: calc(100vh - 100px); 
+            padding: 20px;
+            padding-bottom: 120px; /* Erhöhter Abstand, damit Textbox nichts verdeckt */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         .bubble {
@@ -32,52 +39,57 @@
             word-wrap: break-word;
         }
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 40px; }
+        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 45px; }
 
         /* Code & Markdown */
-        .code-container { position: relative; margin: 10px 0; }
+        .code-container { position: relative; margin: 12px 0; }
         pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: monospace; border: 1px solid #333; font-size: 14px; }
         .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
         b { color: #fff; font-weight: bold; }
 
-        /* UI Elements */
-        .footer { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 100; }
+        /* Lautsprecher Button in AI Nachricht */
+        .speak-btn { position: absolute; bottom: 10px; right: 12px; background: none; border: none; cursor: pointer; opacity: 0.5; }
+        .speak-btn svg { fill: #fff; width: 18px; height: 18px; }
+
+        /* Eingabeleiste */
+        .footer { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 1000; }
         .pill {
             display: flex; align-items: center; width: 92%; max-width: 650px;
-            background: rgba(30, 31, 33, 0.7); backdrop-filter: blur(30px) saturate(180%);
+            background: rgba(30, 31, 33, 0.85); backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
             border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
         input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 12px; }
         .icon-btn { cursor: pointer; padding: 8px; transition: 0.2s; display: flex; align-items: center; }
-        .icon-btn svg { fill: #a0a0a0; width: 22px; }
+        .icon-btn svg { fill: #a0a0a0; width: 24px; }
         
-        /* Das grüne Leuchten */
         .active-green svg { 
             fill: var(--accent-green) !important; 
             filter: drop-shadow(0 0 10px var(--accent-green)); 
         }
 
+        /* Live Overlay */
         #live-overlay {
             position: fixed; inset: 0; background: #000; z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 40px 0;
+            padding: 60px 0;
         }
         .visualizer-ring {
-            width: 140px; height: 140px; border-radius: 50%;
-            border: 2px solid var(--accent-green); animation: pulse 2s infinite;
+            width: 150px; height: 150px; border-radius: 50%;
+            border: 3px solid var(--accent-green); animation: pulse 2s infinite;
         }
-        .live-controls { display: flex; gap: 25px; background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); }
-        .live-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+        .live-controls { display: flex; gap: 30px; background: rgba(255,255,255,0.08); padding: 20px 40px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); }
+        .live-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
         .btn-close { background: #eb4444; }
 
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.15); opacity: 0.3; } 100% { transform: scale(1); opacity: 0.8; } }
     </style>
 </head>
 <body>
 
     <div id="chat-area">
-        <div class="bubble ai">Mikrofon-Test bereit. Klicke auf das Mikrofon, um zu sprechen.</div>
+        <div class="bubble ai">Bereit. Das Overlay-Problem wurde behoben. Wie kann ich helfen?</div>
     </div>
 
     <div class="footer">
@@ -93,93 +105,70 @@
     </div>
 
     <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 2px;">LIVE MODUS AKTIV</div>
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODE</div>
         <div class="visualizer-ring"></div>
         <div class="live-controls">
-            <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
+            <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
         </div>
     </div>
 
     <script>
-        const API_KEY = "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";
+        const API_KEY = "DEIN_KEY_HIER";
         let isVoiceSession = false;
 
-        // --- Spracherkennung Initialisierung ---
+        // Spracherkennung Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'de-DE';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            recognition.continuous = false;
 
-            recognition.onstart = () => {
-                document.getElementById('mic-btn').classList.add('active-green');
+            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+            recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+            recognition.onerror = () => document.getElementById('mic-btn').classList.remove('active-green');
+            
+            recognition.onresult = (e) => {
+                const t = e.results[0][0].transcript;
+                addMsg(t, 'user');
+                askAI(t, isVoiceSession);
             };
-
-            recognition.onerror = (event) => {
-                console.error("Mic Error:", event.error);
-                document.getElementById('mic-btn').classList.remove('active-green');
-                if(event.error === 'not-allowed') alert("Bitte Mikrofon-Zugriff im Browser erlauben!");
-            };
-
-            recognition.onend = () => {
-                document.getElementById('mic-btn').classList.remove('active-green');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                addMsg(transcript, 'user');
-                askAI(transcript, isVoiceSession);
-            };
-        } else {
-            alert("Dein Browser unterstützt keine Spracherkennung. Nutze Chrome oder Safari.");
-        }
-
-        // --- Funktionen ---
-
-        function startListening() {
-            if (recognition) {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    recognition.stop(); // Falls sie schon läuft, stoppen und neu starten
-                }
-            }
         }
 
         function parseContent(text) {
             let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
                 const id = 'code-' + Math.random().toString(36).substr(2, 9);
-                return `<div class="code-container"><button class="copy-btn" onclick="copyCode('${id}')">Kopieren</button><pre><code id="${id}">${code.trim()}</code></pre></div>`;
+                return `<div class="code-container"><button class="copy-btn" onclick="copyCode('${id}')">Copy</button><pre><code id="${id}">${code.trim()}</code></pre></div>`;
             });
             return html;
         }
 
         async function askAI(text, voice) {
             const msg = addMsg("...", 'ai');
-            scrollToBottom();
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY.trim(), "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
+                    body: JSON.stringify({ 
+                        model: "llama-3.3-70b-versatile", // Aktuelles Modell
+                        messages: [{role: "user", content: text}] 
+                    })
                 });
                 const data = await res.json();
                 const answer = data.choices[0].message.content;
-                msg.innerHTML = parseContent(answer);
+                msg.innerHTML = parseContent(answer) + `<button class="speak-btn" onclick="speak('${answer.replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>`;
                 if (voice) speak(answer);
-                scrollToBottom();
             } catch (e) { msg.innerText = "Fehler!"; }
+            scrollToBottom();
         }
 
         function speak(t) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') startListening(); };
+            u.onend = () => { if(isVoiceSession && document.getElementById('live-overlay').style.display === 'flex') recognition.start(); };
             window.speechSynthesis.speak(u);
         }
 
@@ -197,26 +186,22 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // --- Event Listener ---
+        function copyCode(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+        }
 
-        document.getElementById('mic-btn').onclick = () => {
-            isVoiceSession = true;
-            startListening();
-        };
-
+        // Event Listener
+        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; recognition.start(); };
         document.getElementById('live-start-btn').onclick = () => {
             document.getElementById('live-overlay').style.display = 'flex';
             isVoiceSession = true;
-            startListening();
+            recognition.start();
         };
-
         document.getElementById('close-live').onclick = () => {
             document.getElementById('live-overlay').style.display = 'none';
             isVoiceSession = false;
             window.speechSynthesis.cancel();
-            if(recognition) recognition.stop();
         };
-
         document.getElementById('input-field').onkeypress = (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 isVoiceSession = false;
@@ -225,10 +210,6 @@
                 e.target.value = "";
             }
         };
-
-        function copyCode(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText);
-        }
     </script>
 </body>
 </html>
