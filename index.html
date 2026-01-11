@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -34,148 +33,199 @@
             -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--border-glass);
             display: flex; align-items: center; padding: 0 20px; z-index: 1000;
         }
-
-        .header-bar img { height: 40px; width: auto; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .header-bar img:active { transform: scale(0.9); }
+        .header-bar img { height: 40px; width: auto; border-radius: 6px; cursor: pointer; }
 
         #chat-area {
             height: calc(100vh - 120px); padding: 85px 20px 20px 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            overflow-y: auto; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth;
         }
 
-        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 80%; line-height: 1.6; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        /* BUBBLES */
+        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 80%; line-height: 1.6; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); word-wrap: break-word; }
         .user { align-self: flex-end; background: var(--bubble-user); border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 40px; }
 
         .copyright { text-align: center; font-size: 11px; color: rgba(255, 255, 255, 0.2); padding: 10px 0 40px 0; width: 100%; order: 9999; }
 
-        /* ADMIN POPUP STYLE */
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px); z-index: 3000; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: #1c1c1e; padding: 30px; border-radius: 24px; width: 85%; max-width: 400px;
-            border: 1px solid var(--border-glass); text-align: center;
-        }
-        .modal-content h3 { margin-top: 0; color: var(--accent-green); }
-        .admin-input {
-            width: 100%; padding: 12px; margin: 15px 0; background: #2c2c2e; border: 1px solid #444;
-            border-radius: 12px; color: white; box-sizing: border-box; font-size: 16px;
-        }
-        .admin-btn {
-            background: var(--accent-green); color: black; border: none; padding: 12px 25px;
-            border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%;
-        }
+        /* MODALS (Admin & Custom Notification) */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 3000; align-items: center; justify-content: center; }
+        .modal-content { background: #1c1c1e; padding: 30px; border-radius: 24px; width: 85%; max-width: 400px; border: 1px solid var(--border-glass); text-align: center; animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .admin-input { width: 100%; padding: 12px; margin: 15px 0; background: #2c2c2e; border: 1px solid #444; border-radius: 12px; color: white; box-sizing: border-box; font-size: 16px; }
+        .admin-btn { background: var(--accent-green); color: black; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
         .close-modal { color: #888; font-size: 13px; margin-top: 15px; cursor: pointer; display: block; }
 
-        /* FOOTER */
+        /* CODE BOXES */
+        .code-container { position: relative; margin: 10px 0; }
+        pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: monospace; border: 1px solid #333; font-size: 14px; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+
+        /* FOOTER & PILL */
         .footer { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .pill {
-            display: flex; align-items: center; width: 92%; max-width: 650px;
-            background: rgba(30, 31, 33, 0.7); backdrop-filter: blur(30px);
-            border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass);
-        }
-        input { flex: 1; background: none; border: none; outline: none; color: white; padding: 12px; }
+        .pill { display: flex; align-items: center; width: 92%; max-width: 650px; background: rgba(30, 31, 33, 0.7); backdrop-filter: blur(30px); border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass); }
+        input { flex: 1; background: none; border: none; outline: none; color: white; padding: 12px; font-size: 16px; }
+        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
+
+        /* LIVE OVERLAY */
+        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 0; }
+        .visualizer-ring { width: 140px; height: 140px; border-radius: 50%; border: 2px solid var(--accent-green); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
     </style>
 </head>
-<body>
+<body onload="initApp()">
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo" onclick="checkAdmin()">
     </div>
 
     <div id="admin-modal" class="modal">
-        <div class="modal-content" id="modal-inner">
-            </div>
+        <div class="modal-content" id="modal-inner"></div>
+    </div>
+
+    <div id="notify-popup" class="modal">
+        <div class="modal-content">
+            <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height: 50px; margin-bottom: 10px;">
+            <h3 id="pop-title">Broadcast</h3>
+            <p id="pop-msg"></p>
+            <button class="admin-btn" onclick="closeNotify()">Gelesen</button>
+        </div>
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Benachrichtigungs-Schnittstelle aktiv.</div>
+        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir heute helfen?</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <div class="footer">
         <div class="pill">
+            <div class="icon-btn" id="live-start-btn"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg></div>
             <input type="text" id="input-field" placeholder="Nachricht..." autocomplete="off">
+            <div class="icon-btn" id="mic-btn"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
     </div>
 
+    <div id="live-overlay">
+        <div style="color: var(--accent-green); letter-spacing: 2px;">LIVE MODUS AKTIV</div>
+        <div class="visualizer-ring"></div>
+        <div style="padding: 20px;"><button class="admin-btn" style="background:#eb4444;" onclick="stopLive()">Beenden</button></div>
+    </div>
+
     <script>
+        const API_KEY = "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";
         const ADMIN_CODE = "19012014";
 
+        function initApp() {
+            // Fragt beim Laden nach Benachrichtigungs-Rechten (Browser-Ebene)
+            if ("Notification" in window) { Notification.requestPermission(); }
+        }
+
+        // --- ADMIN FUNKTIONEN ---
         function checkAdmin() {
             const modal = document.getElementById('admin-modal');
-            const inner = document.getElementById('modal-inner');
             modal.style.display = 'flex';
-            
-            inner.innerHTML = `
-                <h3>Admin Zugriff</h3>
-                <p>Bitte Code eingeben:</p>
-                <input type="password" id="code-entry" class="admin-input" placeholder="****">
-                <button class="admin-btn" onclick="verifyCode()">Bestätigen</button>
-                <span class="close-modal" onclick="closeModal()">Abbrechen</span>
-            `;
+            document.getElementById('modal-inner').innerHTML = `
+                <h3>Admin Login</h3>
+                <input type="password" id="code-entry" class="admin-input" placeholder="Code">
+                <button class="admin-btn" onclick="verifyCode()">Login</button>
+                <span class="close-modal" onclick="closeModal()">Schließen</span>`;
         }
 
         function verifyCode() {
-            const input = document.getElementById('code-entry').value;
-            if(input === ADMIN_CODE) {
-                showAdminMenu();
-            } else {
-                alert("Falscher Code!");
-                closeModal();
-            }
+            if(document.getElementById('code-entry').value === ADMIN_CODE) {
+                document.getElementById('modal-inner').innerHTML = `
+                    <h3>Broadcast</h3>
+                    <textarea id="broadcast-txt" class="admin-input" rows="3" placeholder="Deine Nachricht..."></textarea>
+                    <button class="admin-btn" onclick="triggerBroadcast()">An alle senden</button>
+                    <span class="close-modal" onclick="closeModal()">Schließen</span>`;
+            } else { alert("Falscher Code"); }
         }
 
-        function showAdminMenu() {
-            const inner = document.getElementById('modal-inner');
-            inner.innerHTML = `
-                <h3>Broadcast</h3>
-                <p>Nachricht an alle Nutzer senden:</p>
-                <textarea id="push-msg" class="admin-input" rows="3" placeholder="Deine Nachricht..."></textarea>
-                <button class="admin-btn" onclick="sendPush()">Jetzt senden</button>
-                <span class="close-modal" onclick="closeModal()">Menü schließen</span>
-            `;
-            // Fordert Erlaubnis an, falls noch nicht geschehen
-            if (Notification.permission !== "granted") {
-                Notification.requestPermission();
-            }
-        }
-
-        function sendPush() {
-            const msg = document.getElementById('push-msg').value;
+        function triggerBroadcast() {
+            const msg = document.getElementById('broadcast-txt').value;
             if(!msg) return;
-
-            // Lokale Demo-Benachrichtigung (für den Sender sichtbar)
-            if (Notification.permission === "granted") {
-                new Notification("NEXUS Broadcast", { body: msg, icon: "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" });
-                alert("Nachricht wurde an die Broadcast-Schnittstelle gesendet!");
-                closeModal();
-            } else {
-                alert("Bitte Benachrichtigungen im Browser erlauben!");
-            }
-            
-            // Hier würde normalerweise der Fetch-Befehl an deinen Server (z.B. Firebase) stehen:
-            // fetch('/api/send-push', { method: 'POST', body: JSON.stringify({text: msg}) });
+            // Hier simulieren wir den Broadcast an alle (In-App PopUp)
+            showInAppNotify("System Broadcast", msg);
+            closeModal();
         }
 
-        function closeModal() {
-            document.getElementById('admin-modal').style.display = 'none';
+        function showInAppNotify(title, msg) {
+            document.getElementById('pop-title').innerText = title;
+            document.getElementById('pop-msg').innerText = msg;
+            document.getElementById('notify-popup').style.display = 'flex';
         }
 
-        // Einfaches Chat-Script
+        function closeNotify() { document.getElementById('notify-popup').style.display = 'none'; }
+        function closeModal() { document.getElementById('admin-modal').style.display = 'none'; }
+
+        // --- KI & CHAT FUNKTIONEN ---
+        function addMsg(t, s) {
+            const d = document.createElement('div');
+            d.className = `bubble ${s}`;
+            d.innerHTML = s === 'ai' ? parseContent(t) : t;
+            const area = document.getElementById('chat-area');
+            area.insertBefore(d, document.getElementById('copyright-tag'));
+            area.scrollTop = area.scrollHeight;
+            return d;
+        }
+
+        function parseContent(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            html = html.replace(/```([\s\S]*?)```/g, (m, code) => {
+                const id = 'c' + Math.random().toString(36).substr(2,5);
+                return `<div class="code-container"><button class="copy-btn" onclick="copyCode('${id}')">Copy</button><pre id="${id}">${code.trim()}</pre></div>`;
+            });
+            return html;
+        }
+
+        async function askAI(text, voice) {
+            const msg = addMsg("...", 'ai');
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST", headers: { "Authorization": "Bearer "+API_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
+                });
+                const data = await res.json();
+                const answer = data.choices[0].message.content;
+                msg.innerHTML = parseContent(answer);
+                if (voice) speak(answer);
+            } catch (e) { msg.innerText = "Fehler!"; }
+        }
+
+        function copyCode(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); }
+
+        // --- STIMME & LIVE ---
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let rec = Speech ? new Speech() : null;
+        if(rec) {
+            rec.lang = 'de-DE';
+            rec.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+            rec.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+            rec.onresult = (e) => { const t = e.results[0][0].transcript; addMsg(t, 'user'); askAI(t, true); };
+        }
+
+        function speak(t) {
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'de-DE';
+            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') rec.start(); };
+            window.speechSynthesis.speak(u);
+        }
+
+        function stopLive() { 
+            document.getElementById('live-overlay').style.display = 'none'; 
+            window.speechSynthesis.cancel(); 
+            if(rec) rec.stop(); 
+        }
+
+        document.getElementById('mic-btn').onclick = () => rec && rec.start();
+        document.getElementById('live-start-btn').onclick = () => { document.getElementById('live-overlay').style.display = 'flex'; rec && rec.start(); };
         document.getElementById('input-field').onkeypress = (e) => {
             if (e.key === 'Enter' && e.target.value) {
-                const text = e.target.value;
-                const d = document.createElement('div');
-                d.className = "bubble user";
-                d.innerText = text;
-                const area = document.getElementById('chat-area');
-                area.insertBefore(d, document.getElementById('copyright-tag'));
+                addMsg(e.target.value, 'user');
+                askAI(e.target.value, false);
                 e.target.value = "";
-                area.scrollTop = area.scrollHeight;
             }
         };
     </script>
