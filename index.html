@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NEXUS AI</title>
+    <title>NEXUS AI - PRO</title>
     
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
             --accent-green: #00ff88;
             --bg-dark: #0b0b0c;
-            --bubble-user: #007aff; /* Jetzt auch im Dark Mode Blau */
+            --bubble-user: #007aff; 
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.1);
@@ -28,10 +29,10 @@
             --header-bg: rgba(242, 242, 247, 0.6);
         }
 
-        body {
-            margin: 0; background: var(--bg-dark); color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif; overflow: hidden; height: 100vh;
-            transition: background 0.3s, color 0.3s;
+        body, html {
+            margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main);
+            font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%;
+            overflow: hidden; transition: background 0.3s;
         }
 
         .header-bar {
@@ -44,205 +45,137 @@
             padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
         }
         
-        .header-right { display: flex; align-items: center; gap: 8px; }
-        .header-bar img { height: 38px; width: auto; border-radius: 6px; }
-
-        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
-        .icon-top-btn:active { background: var(--border-glass); }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
+        .header-bar img { height: 38px; border-radius: 6px; }
 
         #chat-area {
-            height: 100vh; 
-            padding: calc(85px + env(safe-area-inset-top)) 20px 120px 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            position: absolute; inset: 0;
+            padding: calc(80px + env(safe-area-inset-top)) 20px 150px 20px; 
+            overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .copyright { text-align: center; font-size: 11px; color: rgba(128, 128, 128, 0.4); padding: 20px 0; width: 100%; order: 9999; }
+        .bubble-container {
+            display: flex; flex-direction: column; max-width: 85%;
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        .user-container { align-self: flex-end; }
+        .ai-container { align-self: flex-start; }
 
-        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
+        .bubble { 
+            padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; 
+            word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
+        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        
+        .ai p { margin: 0; }
+        .ai pre { background: #000; padding: 12px; border-radius: 12px; overflow-x: auto; margin: 10px 0; border: 1px solid var(--border-glass); }
+
+        .time-tag { font-size: 10px; opacity: 0.4; margin-top: 5px; padding: 0 8px; }
+        .user-container .time-tag { text-align: right; }
+
+        .typing-indicator { font-size: 13px; color: var(--accent-green); display: none; margin-bottom: 10px; }
+
+        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; }
         
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--header-bg); 
-            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
         }
         
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
-        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
+        .icon-btn { cursor: pointer; padding: 8px; }
+
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; }
 
         #live-overlay { 
             position: fixed; inset: 0; background: #000; z-index: 2000; 
             display: none; flex-direction: column; align-items: center; 
             justify-content: space-between; padding: 100px 0 60px 0; 
         }
-
-        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { 
-            position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
-            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
-            filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
-        }
-        .orb-layer:nth-child(2) { animation-duration: 4s; opacity: 0.3; animation-direction: reverse; }
-
-        @keyframes moveOrb {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .live-bottom-controls { display: flex; flex-direction: column; align-items: center; gap: 30px; width: 100%; }
-        
-        #interrupt-btn { 
-            display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); 
-            color: white; padding: 14px 28px; border-radius: 30px; font-size: 15px; 
-            cursor: pointer; backdrop-filter: blur(10px);
-        }
-
-        .btn-close-live {
-            width: 60px; height: 60px; background: #eb4444; border: none; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 0 20px rgba(235, 68, 68, 0.4);
-        }
     </style>
 </head>
-<body>
+<body onload="window.scrollTo(0,0); document.getElementById('chat-area').scrollTop = 0;">
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
-        <div class="header-right">
-            <div class="icon-top-btn" onclick="toggleTheme()">
-                <svg id="theme-icon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5" fill="currentColor"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <div class="icon-top-btn" onclick="createNewChat()">
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
+        <div style="display: flex; gap: 15px;">
+            <span onclick="toggleTheme()" style="cursor:pointer; font-size: 20px;">🌓</span>
+            <span onclick="location.reload()" style="cursor:pointer; font-size: 20px;">🔄</span>
         </div>
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Deine Nachrichten sind jetzt in beiden Modi blau.</div>
-        <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
+        <div class="bubble-container ai-container">
+            <div class="bubble ai">System bereit. Wie kann ich helfen?</div>
+        </div>
+        <div id="typing" class="typing-indicator">NEXUS denkt nach...</div>
     </div>
 
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn" onclick="startLive()">
-                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.6-6.2 4.6 2.3-7.3-6.1-4.5h7.6z"/></svg>
-            </div>
-            <input type="text" id="input-field" placeholder="Nachricht..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">
-                <svg viewBox="0 0 24 24" width="22" fill="#a0a0a0"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            </div>
+            <div class="icon-btn" onclick="startLive()">🚀</div>
+            <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
+            <div class="icon-btn" id="mic-btn" onclick="toggleMic()">🎤</div>
         </div>
+        <div class="copyright">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold; font-size: 14px;">LIVE MODUS</div>
-        <div class="orb-container">
-            <div class="orb-layer"></div>
-            <div class="orb-layer"></div>
         </div>
-        <div class="live-bottom-controls">
-            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
-            <button class="btn-close-live" onclick="closeLive()">
-                <svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            </button>
-        </div>
-    </div>
 
     <script>
         const API_KEY = "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";
-        let isLive = false;
-        let isVoiceActive = false;
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = new SpeechRecognition();
-        recognition.lang = 'de-DE';
+        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch. Nutze Markdown."}];
 
-        function toggleTheme() {
-            const body = document.documentElement;
-            const icon = document.getElementById('theme-icon');
-            if (body.getAttribute('data-theme') === 'light') {
-                body.removeAttribute('data-theme');
-                icon.innerHTML = '<circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
-            } else {
-                body.setAttribute('data-theme', 'light');
-                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>';
-            }
-        }
+        async function askAI(text) {
+            document.getElementById('typing').style.display = 'block';
+            chatHistory.push({role: "user", content: text});
+            const aiMsgContainer = addMsg("", 'ai');
+            const aiBubble = aiMsgContainer.querySelector('.bubble');
 
-        async function askAI(text, useVoice) {
-            const d = addMsg("...", 'ai');
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        model: "llama-3.3-70b-versatile", 
-                        messages: [
-                            {role: "system", content: "Antworte immer auf Deutsch."},
-                            {role: "user", content: text}
-                        ] 
-                    })
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
                 });
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
-                d.innerText = ans;
-                if(useVoice || isLive) speak(ans);
-            } catch(e) { d.innerText = "Fehler!"; }
+                chatHistory.push({role: "assistant", content: ans});
+                aiBubble.innerHTML = marked.parse(ans);
+            } catch(e) { aiBubble.innerText = "Fehler."; }
+            document.getElementById('typing').style.display = 'none';
         }
-
-        function speak(t) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'de-DE';
-            if(isLive) document.getElementById('interrupt-btn').style.display = 'block';
-            u.onend = () => {
-                document.getElementById('interrupt-btn').style.display = 'none';
-                if(isLive) try { recognition.start(); } catch(e){}
-            };
-            window.speechSynthesis.speak(u);
-        }
-
-        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => {
-            document.getElementById('mic-btn').classList.remove('active-green');
-            if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
-        };
-        recognition.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            if(isLive && (t.toLowerCase().includes("stop") || t.toLowerCase().includes("stopp"))) { closeLive(); return; }
-            addMsg(t, 'user');
-            askAI(t, isVoiceActive);
-            isVoiceActive = false; 
-        };
 
         function addMsg(t, s) {
-            const d = document.createElement('div');
-            d.className = `bubble ${s}`; d.innerText = t;
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${s}-container`;
+            cont.innerHTML = `<div class="bubble ${s}">${t}</div><div class="time-tag">${time}</div>`;
             const area = document.getElementById('chat-area');
-            area.insertBefore(d, document.getElementById('copyright-tag'));
+            area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
-            return d;
+            return cont;
         }
 
-        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; try { recognition.start(); } catch(e){} }
-        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
-        function createNewChat() { location.reload(); }
-        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) try { recognition.start(); } catch(e){} }
+        function toggleTheme() {
+            document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light');
+        }
 
         document.getElementById('input-field').onkeypress = (e) => {
-            if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value, false); e.target.value = ""; }
+            if(e.key === 'Enter' && e.target.value) { 
+                addMsg(e.target.value, 'user'); 
+                askAI(e.target.value); 
+                e.target.value = ""; 
+            }
         };
     </script>
 </body>
