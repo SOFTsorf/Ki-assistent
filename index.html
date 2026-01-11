@@ -24,8 +24,9 @@
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.1);
-            --header-bg: rgba(11, 11, 12, 0.7);
+            --header-bg: rgba(11, 11, 12, 0.8);
             --glass-blur: blur(30px);
+            --sidebar-width: 280px;
         }
 
         [data-theme="light"] {
@@ -34,13 +35,30 @@
             --bubble-ai: #ffffff;
             --text-main: #1c1c1e;
             --border-glass: rgba(0, 0, 0, 0.08);
-            --header-bg: rgba(242, 242, 247, 0.7);
+            --header-bg: rgba(242, 242, 247, 0.8);
         }
 
         body, html {
             margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main);
             font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%;
             overflow: hidden; transition: background 0.3s;
+        }
+
+        /* SIDEBAR RECHTS */
+        #sidebar {
+            position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
+            background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
+        
+        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 60px; }
+        .history-item { 
+            padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass);
+            font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            color: var(--text-main);
         }
 
         .header-bar {
@@ -97,7 +115,9 @@
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
         .icon-top-btn svg, .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
-        /* LIVE OVERLAY */
+        /* HELLGRÜNES ICON STYLING */
+        .green-icon svg { fill: var(--accent-green) !important; }
+
         #live-overlay { 
             position: fixed; inset: 0; background: #000; z-index: 2000; 
             display: none; flex-direction: column; align-items: center; 
@@ -109,32 +129,37 @@
             background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
             filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
         }
-        @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
-        #interrupt-btn { display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 14px 28px; border-radius: 30px; cursor: pointer; }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 </head>
-<body onload="window.scrollTo(0,0);">
+<body onload="initApp()">
+
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar">
+        <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 60px;">LETZTE CHATS</div>
+        <div id="history-list" class="history-list"></div>
+    </div>
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
+        
         <div style="display: flex; gap: 5px;">
+            <div class="icon-top-btn" onclick="startNewChat()">
+                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            </div>
             <div class="icon-top-btn" onclick="toggleFullscreen()">
                 <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
             </div>
             <div class="icon-top-btn" onclick="toggleTheme()">
                 <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
             </div>
-            <div class="icon-top-btn" onclick="location.reload()">
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <div class="icon-top-btn green-icon" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
             </div>
         </div>
     </div>
 
     <div id="chat-area">
-        <div class="bubble-container ai-container">
-            <div class="bubble ai">Wie kann ich dir heute helfen?</div>
-        </div>
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>
     </div>
 
@@ -156,53 +181,114 @@
     <div id="live-overlay">
         <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODUS</div>
         <div class="orb-container"><div class="orb-layer"></div><div class="orb-layer" style="animation-duration: 4s; opacity: 0.3;"></div></div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
-            <button class="btn-close-live" onclick="closeLive()"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-        </div>
+        <button class="btn-close-live" onclick="closeLive()"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
 
     <script>
         const API_KEY = "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";
-        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
+        let currentChatId = null;
+        let chatHistory = [];
         let isLive = false;
         let isVoiceActive = false;
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
 
+        function initApp() {
+            renderHistory();
+            startNewChat();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            const overlay = document.querySelector('.sidebar-overlay');
+            overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function startNewChat() {
+            currentChatId = Date.now();
+            chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
+            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
+            addBubble("Wie kann ich dir heute helfen?", "ai", false);
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+        }
+
+        function saveToLocalStorage() {
+            if (chatHistory.length <= 1) return;
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            allChats[currentChatId] = {
+                title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat",
+                messages: chatHistory
+            };
+            localStorage.setItem('nexus_chats', JSON.stringify(allChats));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            Object.keys(allChats).sort().reverse().forEach(id => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = allChats[id].title;
+                item.onclick = () => loadChat(id);
+                list.appendChild(item);
+            });
+        }
+
+        function loadChat(id) {
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            if(allChats[id]) {
+                currentChatId = id;
+                chatHistory = allChats[id].messages;
+                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
+                chatHistory.forEach(msg => {
+                    if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false);
+                });
+                toggleSidebar();
+            }
+        }
+
         async function askAI(text, useVoice) {
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
-            });
-            const data = await res.json();
-            const ans = data.choices[0].message.content;
-            chatHistory.push({role: "assistant", content: ans});
             
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                });
+                const data = await res.json();
+                const ans = data.choices[0].message.content;
+                chatHistory.push({role: "assistant", content: ans});
+                
+                addBubble(ans, "ai", true);
+                document.getElementById('typing').style.display = 'none';
+                saveToLocalStorage();
+
+                if(useVoice || isLive) speak(ans);
+            } catch(e) {
+                document.getElementById('typing').style.display = 'none';
+            }
+        }
+
+        function addBubble(text, side, animate) {
             const area = document.getElementById('chat-area');
             const cont = document.createElement('div');
-            cont.className = 'bubble-container ai-container';
-            cont.innerHTML = `<div class="bubble ai">${marked.parse(ans)}</div>`;
+            cont.className = `bubble-container ${side}-container`;
+            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}</div>`;
             area.insertBefore(cont, document.getElementById('typing'));
-            document.getElementById('typing').style.display = 'none';
             area.scrollTop = area.scrollHeight;
-
-            if(useVoice || isLive) speak(ans);
         }
 
         function speak(t) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            if(isLive) document.getElementById('interrupt-btn').style.display = 'block';
-            u.onend = () => {
-                document.getElementById('interrupt-btn').style.display = 'none';
-                if(isLive) try { recognition.start(); } catch(e){}
-            };
+            u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} };
             window.speechSynthesis.speak(u);
         }
 
@@ -215,29 +301,19 @@
         };
         recognition.onresult = (e) => {
             const t = e.results[0][0].transcript;
-            const area = document.getElementById('chat-area');
-            const cont = document.createElement('div');
-            cont.className = 'bubble-container user-container';
-            cont.innerHTML = `<div class="bubble user">${t}</div>`;
-            area.insertBefore(cont, document.getElementById('typing'));
+            addBubble(t, "user", true);
             askAI(t, isVoiceActive);
             isVoiceActive = false;
         };
 
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
-        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) toggleMic(); }
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) {
-                const area = document.getElementById('chat-area');
-                const cont = document.createElement('div');
-                cont.className = 'bubble-container user-container';
-                cont.innerHTML = `<div class="bubble user">${e.target.value}</div>`;
-                area.insertBefore(cont, document.getElementById('typing'));
+                addBubble(e.target.value, "user", true);
                 askAI(e.target.value, false);
                 e.target.value = "";
-                area.scrollTop = area.scrollHeight;
             }
         };
 
@@ -245,13 +321,9 @@
 
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Fehler beim Aktivieren des Vollbildmodus: ${err.message}`);
-                });
+                document.documentElement.requestFullscreen().catch(err => alert(err.message));
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                document.exitFullscreen();
             }
         }
     </script>
