@@ -121,11 +121,14 @@
             position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
             width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; 
         }
+
+        /* PILL MIT BLUR FIX */
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--header-bg); backdrop-filter: var(--glass-blur);
+            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
         }
+
         input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); z-index: 101; }
 
@@ -200,7 +203,6 @@
 
         function initApp() { renderHistory(); startNewChat(); }
 
-        // MODAL FUNCTIONS
         function openModal() { document.getElementById('custom-modal').classList.add('show'); }
         function closeModal() { document.getElementById('custom-modal').classList.remove('show'); }
         function confirmClear() {
@@ -278,7 +280,13 @@
                 const item = document.createElement('div');
                 item.className = 'history-item';
                 item.innerHTML = `<div>${allChats[id].title}</div><span class="history-date">${allChats[id].date}</span>`;
-                item.onclick = () => { currentChatId = id; chatHistory = allChats[id].messages; document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>'; chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false); }); toggleSidebar(); };
+                item.onclick = () => { 
+                    currentChatId = id; 
+                    chatHistory = allChats[id].messages; 
+                    document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>'; 
+                    chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false); }); 
+                    toggleSidebar(); 
+                };
                 list.appendChild(item);
             });
         }
