@@ -12,7 +12,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: white;
             overflow: hidden;
         }
@@ -33,12 +33,14 @@
         .bubble {
             padding: 12px 18px;
             border-radius: 20px;
-            max-width: 80%;
+            max-width: 85%;
             animation: fadeIn 0.3s ease;
             word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
         }
-        .user { align-self: flex-end; background: #333; }
-        .ai { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .user { align-self: flex-end; background: #333; color: white; border-bottom-right-radius: 4px; }
+        .ai { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; color: #e0e0e0; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -55,19 +57,19 @@
             align-items: center;
             width: 90%;
             max-width: 600px;
-            background: rgba(30, 30, 35, 0.7);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(35, 35, 40, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 40px;
-            padding: 10px 20px;
+            padding: 8px 20px;
             transition: all 0.3s ease;
         }
 
         .pill:focus-within {
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
-            background: rgba(45, 45, 50, 0.8);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            background: rgba(45, 45, 50, 0.85);
         }
 
         input {
@@ -77,31 +79,30 @@
             outline: none;
             color: white;
             font-size: 17px;
-            padding: 10px;
+            padding: 12px 5px;
         }
 
-        input::placeholder { color: #888; }
-
-        #mic svg { fill: #bdc1c6; width: 24px; cursor: pointer; display: block; }
+        #mic { cursor: pointer; padding: 5px; display: flex; align-items: center; }
+        #mic svg { fill: #9aa0a6; width: 24px; height: 24px; transition: 0.2s; }
         .listening svg { fill: #ff4b4b !important; filter: drop-shadow(0 0 8px #ff4b4b); }
     </style>
 </head>
 <body>
 
     <div id="chat-area">
-        <div class="bubble ai">Hallo! Frag mich etwas...</div>
+        <div class="bubble ai">Hallo! Ich bin bereit. Frag mich etwas...</div>
     </div>
 
     <div class="footer">
-        <div class="pill" id="pill-container">
+        <div class="pill">
             <input type="text" id="input-field" placeholder="Frag mich etwas..." autocomplete="off">
             <div id="mic"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
     </div>
 
     <script>
-        // HIER DEINEN KEY EINSETZEN
-        const API_KEY = "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"; 
+        // ACHTUNG: Hier deinen kompletten Key zwischen die Anführungszeichen setzen!
+        const API_KEY = "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"; 
 
         const inputField = document.getElementById('input-field');
         const chatArea = document.getElementById('chat-area');
@@ -111,13 +112,13 @@
             if (!text.trim()) return;
             
             addMsg(text, 'user');
-            const aiMsg = addMsg("...", 'ai');
+            const aiMsg = addMsg("KI denkt nach...", 'ai');
 
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { 
-                        "Authorization": "Bearer " + API_KEY, 
+                        "Authorization": "Bearer " + API_KEY.trim(), 
                         "Content-Type": "application/json" 
                     },
                     body: JSON.stringify({ 
@@ -127,13 +128,16 @@
                 });
                 
                 const data = await res.json();
-                if (data.choices && data.choices[0]) {
+                
+                if (data.error) {
+                    aiMsg.innerText = "Fehler von Groq: " + data.error.message;
+                } else if (data.choices && data.choices[0]) {
                     aiMsg.innerText = data.choices[0].message.content;
                 } else {
-                    aiMsg.innerText = "Fehler: Antwort konnte nicht geladen werden.";
+                    aiMsg.innerText = "Unbekannter Fehler beim Laden.";
                 }
             } catch (e) { 
-                aiMsg.innerText = "Fehler: Verbindung zur KI fehlgeschlagen. Prüfe deinen Key!"; 
+                aiMsg.innerText = "Verbindung fehlgeschlagen. Bitte Internet und API-Key prüfen."; 
             }
         }
 
@@ -146,32 +150,19 @@
             return d;
         }
 
-        inputField.addEventListener('keypress', (e) => {
+        inputField.onkeypress = (e) => {
             if (e.key === 'Enter' && inputField.value) {
                 askAI(inputField.value);
                 inputField.value = "";
             }
-        });
+        };
 
-        // Sprachsteuerung
         const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (Rec) {
-            const r = new Rec(); 
-            r.lang = 'de-DE';
-            
-            micBtn.onclick = () => {
-                r.start();
-                micBtn.classList.add('listening');
-            };
-
-            r.onresult = (e) => { 
-                const transcript = e.results[0][0].transcript;
-                askAI(transcript); 
-            };
-
-            r.onend = () => {
-                micBtn.classList.remove('listening');
-            };
+            const r = new Rec(); r.lang = 'de-DE';
+            micBtn.onclick = () => { r.start(); micBtn.classList.add('listening'); };
+            r.onresult = (e) => { askAI(e.results[0][0].transcript); };
+            r.onend = () => micBtn.classList.remove('listening');
         }
     </script>
 </body>
