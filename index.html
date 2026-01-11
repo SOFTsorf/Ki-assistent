@@ -124,11 +124,11 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: fill 0.3s; }
+        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: 0.2s; }
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
-        /* HAMBURGER & MIC COLORS */
+        /* HAMBURGER & MIC STATUS COLORS */
         .green-icon svg { fill: var(--accent-green) !important; }
         .private-icon svg { fill: #888 !important; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
@@ -165,7 +165,8 @@
         </div>
         <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
         <div id="history-list" class="history-list"></div>
-        <button onclick="clearAllHistory()" style="margin-top: auto; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
+        
+        <button onclick="confirmClearHistory()" style="margin-top: auto; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
     </div>
 
     <div class="header-bar">
@@ -250,7 +251,7 @@
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
             document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich helfen?", "ai", false);
+            addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
@@ -269,13 +270,19 @@
             const list = document.getElementById('history-list');
             list.innerHTML = '';
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            Object.keys(allChats).sort().reverse().forEach(id => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerText = allChats[id].title;
-                item.onclick = () => loadChat(id);
-                list.appendChild(item);
-            });
+            const sortedKeys = Object.keys(allChats).sort().reverse();
+            
+            if(sortedKeys.length === 0) {
+                list.innerHTML = '<div style="color:#666; font-size:12px; text-align:center; margin-top:20px;">Kein Verlauf</div>';
+            } else {
+                sortedKeys.forEach(id => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerText = allChats[id].title;
+                    item.onclick = () => loadChat(id);
+                    list.appendChild(item);
+                });
+            }
         }
 
         function loadChat(id) {
@@ -288,14 +295,14 @@
                 chatHistory = allChats[id].messages;
                 document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
                 chatHistory.forEach(msg => {
-                    if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false);
+                    if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai');
                 });
                 toggleSidebar();
             }
         }
 
-        function clearAllHistory() {
-            if(confirm("Alle Chats endgültig löschen?")) {
+        function confirmClearHistory() {
+            if(confirm("Möchtest du wirklich alle Chats löschen? Dies kann nicht rückgängig gemacht werden.")) {
                 localStorage.removeItem('nexus_chats');
                 renderHistory();
                 startNewChat();
@@ -316,7 +323,7 @@
                 const ans = data.choices[0].message.content;
                 chatHistory.push({role: "assistant", content: ans});
                 
-                addBubble(ans, "ai", true);
+                addBubble(ans, "ai");
                 document.getElementById('typing').style.display = 'none';
                 saveToLocalStorage();
 
@@ -326,7 +333,7 @@
             }
         }
 
-        function addBubble(text, side, animate) {
+        function addBubble(text, side) {
             const area = document.getElementById('chat-area');
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
@@ -352,7 +359,7 @@
         };
         recognition.onresult = (e) => {
             const t = e.results[0][0].transcript;
-            addBubble(t, "user", true);
+            addBubble(t, "user");
             askAI(t, isVoiceActive);
             isVoiceActive = false;
         };
@@ -362,13 +369,17 @@
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) {
-                addBubble(e.target.value, "user", true);
+                addBubble(e.target.value, "user");
                 askAI(e.target.value, false);
                 e.target.value = "";
             }
         };
 
-        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
+        function toggleTheme() { 
+            document.documentElement.hasAttribute('data-theme') ? 
+            document.documentElement.removeAttribute('data-theme') : 
+            document.documentElement.setAttribute('data-theme', 'light'); 
+        }
     </script>
 </body>
 </html>
