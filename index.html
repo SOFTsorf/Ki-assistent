@@ -69,6 +69,14 @@
         }
         .history-date { font-size: 10px; color: #888; margin-top: 4px; display: block; }
 
+        /* LÖSCHEN BUTTON */
+        .delete-all-btn {
+            background: rgba(235, 68, 68, 0.15); color: #eb4444; border: 1px solid rgba(235, 68, 68, 0.3);
+            padding: 12px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer;
+            text-align: center; margin-bottom: 20px; transition: background 0.2s;
+        }
+        .delete-all-btn:active { background: rgba(235, 68, 68, 0.3); }
+
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
@@ -133,6 +141,7 @@
         </div>
         <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
         <div id="history-list" class="history-list"></div>
+        <div class="delete-all-btn" onclick="clearAllHistory()">Verlauf leeren</div>
     </div>
 
     <div class="header-bar">
@@ -197,19 +206,23 @@
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
+        function clearAllHistory() {
+            const confirmDelete = confirm("⚠️ Warnung: Möchtest du wirklich alle alten Chats unwiderruflich löschen?");
+            if (confirmDelete) {
+                localStorage.removeItem('nexus_chats');
+                renderHistory();
+                startNewChat();
+                alert("Verlauf wurde geleert.");
+            }
+        }
+
         function addBubble(text, side, animate) {
             const area = document.getElementById('chat-area');
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `
-                <div class="bubble ${side}">
-                    ${side === 'ai' ? marked.parse(text) : text}
-                    <span class="time-stamp">${timeStr}</span>
-                </div>`;
-            
+            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}<span class="time-stamp">${timeStr}</span></div>`;
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
         }
