@@ -34,7 +34,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* Verankerter Header */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
@@ -49,7 +48,7 @@
 
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; border-radius: 50%; transition: background 0.2s; }
         .icon-top-btn:active { background: var(--border-glass); }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; }
+        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
         #chat-area {
             height: 100vh; 
@@ -83,7 +82,10 @@
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
         <div class="header-right">
             <div class="icon-top-btn" onclick="toggleTheme()">
-                <svg id="theme-icon" viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>
+                <svg id="theme-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
             </div>
             <div class="icon-top-btn" onclick="createNewChat()">
                 <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
@@ -92,7 +94,7 @@
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS bereit. Modus: Dark (Standard).</div>
+        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir helfen?</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
@@ -119,47 +121,49 @@
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
 
-        // Theme Toggle ohne Speichern
         function toggleTheme() {
             const body = document.documentElement;
             const icon = document.getElementById('theme-icon');
             if (body.getAttribute('data-theme') === 'light') {
                 body.removeAttribute('data-theme');
-                icon.innerHTML = '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/>';
+                icon.innerHTML = '<circle cx="12" cy="12" r="5" fill="currentColor"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
             } else {
                 body.setAttribute('data-theme', 'light');
-                icon.innerHTML = '<path d="M10 2c-1.82 0-3.53.5-5 1.35C7.99 5.08 10 8.3 10 12s-2.01 6.92-5 8.65C6.47 21.5 8.18 22 10 22c5.52 0 10-4.48 10-10S15.52 2 10 2z"/>';
+                icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>';
             }
-        }
-
-        function interruptAI() {
-            window.speechSynthesis.cancel();
-            document.getElementById('interrupt-btn').style.display = 'none';
-            try { recognition.start(); } catch(e){}
         }
 
         async function askAI(text) {
             const d = addMsg("...", 'ai');
-            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                method: "POST",
-                headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
-            });
-            const data = await res.json();
-            const ans = data.choices[0].message.content;
-            d.innerText = ans;
-            if(isLive) speak(ans);
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
+                });
+                const data = await res.json();
+                const ans = data.choices[0].message.content;
+                d.innerText = ans;
+                if(isLive) speak(ans);
+            } catch(e) { d.innerText = "Fehler!"; }
         }
 
         function speak(t) {
+            window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
             document.getElementById('interrupt-btn').style.display = 'block';
             u.onend = () => {
                 document.getElementById('interrupt-btn').style.display = 'none';
-                if(isLive) recognition.start();
+                if(isLive) try { recognition.start(); } catch(e){}
             };
             window.speechSynthesis.speak(u);
+        }
+
+        function interruptAI() {
+            window.speechSynthesis.cancel();
+            document.getElementById('interrupt-btn').style.display = 'none';
+            if(isLive) try { recognition.start(); } catch(e){}
         }
 
         function addMsg(t, s) {
@@ -178,9 +182,9 @@
             askAI(t);
         };
 
-        recognition.onend = () => { if(isLive && !window.speechSynthesis.speaking) recognition.start(); };
+        recognition.onend = () => { if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){} };
 
-        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; recognition.start(); }
+        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; try { recognition.start(); } catch(e){} }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
         function createNewChat() { location.reload(); }
 
