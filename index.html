@@ -10,7 +10,6 @@
     <style>
         :root {
             --accent-green: #00ff88;
-            /* Dark Mode (Standard) */
             --bg-dark: #0b0b0c;
             --bubble-user: #2b2c2f;
             --bubble-ai: #18191b;
@@ -70,13 +69,44 @@
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
 
-        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 0; }
-        .orb-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(20px); opacity: 0.4; animation: pulse 4s infinite ease-in-out; }
+        /* RE-DESIGNED LIVE OVERLAY */
+        #live-overlay { 
+            position: fixed; inset: 0; background: #000; z-index: 2000; 
+            display: none; flex-direction: column; align-items: center; 
+            justify-content: space-between; padding: 100px 0 60px 0; 
+        }
+
+        .orb-container { 
+            position: relative; width: 220px; height: 220px; 
+            display: flex; align-items: center; justify-content: center; 
+        }
         
-        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.5; } }
+        .orb-layer { 
+            position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
+            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
+            filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
+        }
+        .orb-layer:nth-child(2) { animation-duration: 4s; opacity: 0.3; animation-direction: reverse; }
+
+        @keyframes moveOrb {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .live-bottom-controls { display: flex; flex-direction: column; align-items: center; gap: 30px; width: 100%; }
         
-        #interrupt-btn { display: none; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; }
+        #interrupt-btn { 
+            display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); 
+            color: white; padding: 14px 28px; border-radius: 30px; font-size: 15px; 
+            cursor: pointer; backdrop-filter: blur(10px);
+        }
+
+        .btn-close-live {
+            width: 60px; height: 60px; background: #eb4444; border: none; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 20px rgba(235, 68, 68, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -114,10 +144,17 @@
     </div>
 
     <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 2px; font-size: 12px;">LIVE MODUS</div>
-        <div class="orb-container"><div class="orb-layer"></div></div>
-        <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
-        <button onclick="closeLive()" style="background:#eb4444; border:none; color:white; padding:15px; border-radius:50%; margin-bottom:40px;">X</button>
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold; font-size: 14px;">LIVE MODUS</div>
+        <div class="orb-container">
+            <div class="orb-layer"></div>
+            <div class="orb-layer"></div>
+        </div>
+        <div class="live-bottom-controls">
+            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
+            <button class="btn-close-live" onclick="closeLive()">
+                <svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -167,10 +204,7 @@
             window.speechSynthesis.speak(u);
         }
 
-        function toggleMic() {
-            isVoiceActive = true;
-            try { recognition.start(); } catch(e){}
-        }
+        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
 
         recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
         recognition.onend = () => {
