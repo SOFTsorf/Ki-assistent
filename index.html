@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NEXUS PRO">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <title>NEXUS AI - PRO</title>
+
+    <link rel="manifest" href='data:application/manifest+json,{"name":"NEXUS AI PRO","short_name":"NEXUS","start_url":".","display":"standalone","background_color":"#0b0b0c","theme_color":"#0b0b0c"}'>
     
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -38,12 +43,10 @@
             overflow: hidden; transition: background 0.3s;
         }
 
-        /* Header mit Safe-Area-Inset für Apps */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
-            background: var(--header-bg); 
-            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
+            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
             border-bottom: 1px solid var(--border-glass);
             display: flex; align-items: flex-end; justify-content: space-between;
             padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
