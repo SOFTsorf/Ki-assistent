@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Professional Assistant</title>
+    
     <link rel="icon" type="image/jpeg" href="https://www.shutterstock.com/image-vector/artificial-intelligence-ai-pictogram-technology-600nw-2514391345.jpg">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -40,13 +42,20 @@
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 40px; }
 
-        /* Code & Markdown */
+        /* Copyright Styling */
+        .copyright {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 20px 0;
+            margin-top: auto;
+        }
+
         .code-container { position: relative; margin: 10px 0; }
         pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: monospace; border: 1px solid #333; font-size: 14px; }
         .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
         b { color: #fff; font-weight: bold; }
 
-        /* UI Elements */
         .footer { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 100; }
         .pill {
             display: flex; align-items: center; width: 92%; max-width: 650px;
@@ -58,7 +67,6 @@
         .icon-btn { cursor: pointer; padding: 8px; transition: 0.2s; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
         
-        /* Das grüne Leuchten */
         .active-green svg { 
             fill: var(--accent-green) !important; 
             filter: drop-shadow(0 0 10px var(--accent-green)); 
@@ -84,6 +92,7 @@
 
     <div id="chat-area">
         <div class="bubble ai">Hallo, wie kann ich dir heute helfen?</div>
+        <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <div class="footer">
@@ -110,7 +119,6 @@
         const API_KEY = "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";
         let isVoiceSession = false;
 
-        // --- Spracherkennung Initialisierung ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
 
@@ -119,40 +127,18 @@
             recognition.lang = 'de-DE';
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                document.getElementById('mic-btn').classList.add('active-green');
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Mic Error:", event.error);
-                document.getElementById('mic-btn').classList.remove('active-green');
-                if(event.error === 'not-allowed') alert("Bitte Mikrofon-Zugriff im Browser erlauben!");
-            };
-
-            recognition.onend = () => {
-                document.getElementById('mic-btn').classList.remove('active-green');
-            };
-
+            recognition.onstart = () => { document.getElementById('mic-btn').classList.add('active-green'); };
+            recognition.onerror = () => { document.getElementById('mic-btn').classList.remove('active-green'); };
+            recognition.onend = () => { document.getElementById('mic-btn').classList.remove('active-green'); };
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 addMsg(transcript, 'user');
                 askAI(transcript, isVoiceSession);
             };
-        } else {
-            alert("Dein Browser unterstützt keine Spracherkennung. Nutze Chrome oder Safari.");
         }
 
-        // --- Funktionen ---
-
         function startListening() {
-            if (recognition) {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    recognition.stop(); 
-                }
-            }
+            if (recognition) { try { recognition.start(); } catch (e) { recognition.stop(); } }
         }
 
         function parseContent(text) {
@@ -193,7 +179,11 @@
             const d = document.createElement('div');
             d.className = `bubble ${s}`;
             d.innerHTML = s === 'ai' ? parseContent(t) : t;
-            document.getElementById('chat-area').appendChild(d);
+            
+            const area = document.getElementById('chat-area');
+            const copyright = document.getElementById('copyright-tag');
+            area.insertBefore(d, copyright); // Fügt Nachricht vor dem Copyright ein
+            
             scrollToBottom();
             return d;
         }
@@ -203,19 +193,12 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // --- Event Listener ---
-
-        document.getElementById('mic-btn').onclick = () => {
-            isVoiceSession = true;
-            startListening();
-        };
-
+        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; startListening(); };
         document.getElementById('live-start-btn').onclick = () => {
             document.getElementById('live-overlay').style.display = 'flex';
             isVoiceSession = true;
             startListening();
         };
-
         document.getElementById('close-live').onclick = () => {
             document.getElementById('live-overlay').style.display = 'none';
             isVoiceSession = false;
@@ -232,9 +215,7 @@
             }
         };
 
-        function copyCode(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText);
-        }
+        function copyCode(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); }
     </script>
 </body>
 </html>
