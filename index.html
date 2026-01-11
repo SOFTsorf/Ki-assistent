@@ -7,13 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NEXUS PRO">
-    <meta name="mobile-web-app-capable" content="yes">
     
     <title>NEXUS AI - PRO</title>
 
-    <link rel="manifest" href='data:application/manifest+json,{"name":"NEXUS AI PRO","short_name":"NEXUS","start_url":".","display":"standalone","background_color":"#0b0b0c","theme_color":"#0b0b0c"}'>
-    
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
@@ -44,7 +40,7 @@
             overflow: hidden; transition: background 0.3s;
         }
 
-        /* SIDEBAR RECHTS */
+        /* SIDEBAR */
         #sidebar {
             position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
             background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
@@ -69,9 +65,9 @@
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
         .history-item { 
             padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass);
-            font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            color: var(--text-main);
+            font-size: 14px; cursor: pointer; color: var(--text-main);
         }
+        .history-date { font-size: 10px; color: #888; margin-top: 4px; display: block; }
 
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
@@ -86,16 +82,19 @@
             position: absolute; inset: 0;
             padding: calc(85px + env(safe-area-inset-top)) 20px 180px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+            box-sizing: border-box; scroll-behavior: smooth;
         }
 
-        .blur-fade-layer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 180px; z-index: 90;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            mask-image: linear-gradient(to top, black 40%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);
-            pointer-events: none;
-        }
+        /* BUBBLES MIT UHRZEIT */
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out; position: relative; }
+        .user-container { align-self: flex-end; }
+        .ai-container { align-self: flex-start; }
+        
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; position: relative; padding-bottom: 22px; }
+        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
+        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        
+        .time-stamp { position: absolute; bottom: 6px; right: 12px; font-size: 9px; opacity: 0.6; }
 
         .footer { 
             position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
@@ -104,51 +103,22 @@
         
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            background: var(--header-bg); backdrop-filter: var(--glass-blur);
             border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
-        .user-container { align-self: flex-end; }
-        .ai-container { align-self: flex-start; }
-        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
-        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); z-index: 101; }
 
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
+        .icon-top-btn, .icon-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
+        .icon-top-btn svg, .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: fill 0.2s; }
-        
-        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; transition: fill 0.2s, filter 0.2s; }
-
-        /* FIX: GRÜNES FEEDBACK FÜR MIKROFON */
-        .active-green svg { 
-            fill: var(--accent-green) !important; 
-            filter: drop-shadow(0 0 8px var(--accent-green)) !important; 
-        }
-
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
         .green-icon svg { fill: var(--accent-green) !important; }
         .private-icon svg { fill: #888 !important; }
 
-        #live-overlay { 
-            position: fixed; inset: 0; background: #000; z-index: 2000; 
-            display: none; flex-direction: column; align-items: center; 
-            justify-content: space-between; padding: 100px 0 60px 0; 
-        }
-        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { 
-            position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
-            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
-            filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
-        }
-        .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body onload="initApp()">
@@ -168,13 +138,12 @@
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
-        
         <div style="display: flex; gap: 5px;">
             <div class="icon-top-btn" onclick="startNewChat()">
                 <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             </div>
             <div class="icon-top-btn" onclick="toggleTheme()">
-                <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></svg>
             </div>
             <div class="icon-top-btn green-icon" id="hamburger-btn" onclick="toggleSidebar()">
                 <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
@@ -186,13 +155,8 @@
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>
     </div>
 
-    <div class="blur-fade-layer"></div>
-
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn" onclick="startLive()">
-                <svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/></svg>
-            </div>
             <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
             <div class="icon-btn" id="mic-btn" onclick="toggleMic()">
                 <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
@@ -201,42 +165,17 @@
         <div class="copyright">(c) 2026 - by Patrick Roth</div>
     </div>
 
-    <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODUS</div>
-        <div class="orb-container"><div class="orb-layer"></div><div class="orb-layer" style="animation-duration: 4s; opacity: 0.3;"></div></div>
-        <button class="btn-close-live" onclick="closeLive()"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-    </div>
-
     <script>
         const API_KEY = "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";
         let currentChatId = null;
         let chatHistory = [];
-        let isLive = false;
-        let isVoiceActive = false;
         let isPrivateMode = false;
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
 
-        function initApp() {
-            renderHistory();
-            startNewChat();
-        }
-
-        function updatePrivateMode() {
-            isPrivateMode = document.getElementById('private-mode-checkbox').checked;
-            const btn = document.getElementById('hamburger-btn');
-            if(isPrivateMode) {
-                btn.classList.remove('green-icon');
-                btn.classList.add('private-icon');
-                startNewChat();
-            } else {
-                btn.classList.add('green-icon');
-                btn.classList.remove('private-icon');
-                startNewChat();
-            }
-        }
+        function initApp() { renderHistory(); startNewChat(); }
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -244,12 +183,54 @@
             overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
         }
 
+        function updatePrivateMode() {
+            isPrivateMode = document.getElementById('private-mode-checkbox').checked;
+            const btn = document.getElementById('hamburger-btn');
+            btn.className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
+            startNewChat();
+        }
+
         function startNewChat() {
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
             document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ? "Privater Chat gestartet. Nichts wird gespeichert." : "Wie kann ich dir heute helfen?", "ai", false);
+            addBubble(isPrivateMode ? "Privater Modus aktiv." : "Bereit für deine Fragen.", "ai", false);
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+        }
+
+        function addBubble(text, side, animate) {
+            const area = document.getElementById('chat-area');
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+            
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${side}-container`;
+            cont.innerHTML = `
+                <div class="bubble ${side}">
+                    ${side === 'ai' ? marked.parse(text) : text}
+                    <span class="time-stamp">${timeStr}</span>
+                </div>`;
+            
+            area.insertBefore(cont, document.getElementById('typing'));
+            area.scrollTop = area.scrollHeight;
+        }
+
+        async function askAI(text) {
+            document.getElementById('typing').style.display = 'block';
+            chatHistory.push({role: "user", content: text});
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                });
+                const data = await res.json();
+                const ans = data.choices[0].message.content;
+                chatHistory.push({role: "assistant", content: ans});
+                addBubble(ans, "ai", true);
+                saveToLocalStorage();
+            } catch(e) {}
+            document.getElementById('typing').style.display = 'none';
         }
 
         function saveToLocalStorage() {
@@ -257,6 +238,7 @@
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             allChats[currentChatId] = {
                 title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat",
+                date: new Date().toLocaleDateString('de-DE'),
                 messages: chatHistory
             };
             localStorage.setItem('nexus_chats', JSON.stringify(allChats));
@@ -270,7 +252,10 @@
             Object.keys(allChats).sort().reverse().forEach(id => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
-                item.innerText = allChats[id].title;
+                item.innerHTML = `
+                    <div style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${allChats[id].title}</div>
+                    <span class="history-date">${allChats[id].date || ''}</span>
+                `;
                 item.onclick = () => loadChat(id);
                 list.appendChild(item);
             });
@@ -279,9 +264,6 @@
         function loadChat(id) {
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             if(allChats[id]) {
-                isPrivateMode = false;
-                document.getElementById('private-mode-checkbox').checked = false;
-                updatePrivateMode();
                 currentChatId = id;
                 chatHistory = allChats[id].messages;
                 document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
@@ -292,81 +274,29 @@
             }
         }
 
-        async function askAI(text, useVoice) {
-            document.getElementById('typing').style.display = 'block';
-            chatHistory.push({role: "user", content: text});
-            
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
-                });
-                const data = await res.json();
-                const ans = data.choices[0].message.content;
-                chatHistory.push({role: "assistant", content: ans});
-                
-                addBubble(ans, "ai", true);
-                document.getElementById('typing').style.display = 'none';
-                saveToLocalStorage();
-
-                if(useVoice || isLive) speak(ans);
-            } catch(e) {
-                document.getElementById('typing').style.display = 'none';
-            }
-        }
-
-        function addBubble(text, side, animate) {
-            const area = document.getElementById('chat-area');
-            const cont = document.createElement('div');
-            cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}</div>`;
-            area.insertBefore(cont, document.getElementById('typing'));
-            area.scrollTop = area.scrollHeight;
-        }
-
-        function speak(t) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'de-DE';
-            u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} };
-            window.speechSynthesis.speak(u);
-        }
-
         function toggleMic() { 
-            isVoiceActive = true; 
-            document.getElementById('mic-btn').classList.add('active-green'); // Sofort-Feedback
-            try { recognition.start(); } catch(e){
-                document.getElementById('mic-btn').classList.remove('active-green');
-            } 
+            document.getElementById('mic-btn').classList.add('active-green');
+            try { recognition.start(); } catch(e) { document.getElementById('mic-btn').classList.remove('active-green'); } 
         }
         
-        recognition.onstart = () => {
-            document.getElementById('mic-btn').classList.add('active-green');
-        };
-        recognition.onend = () => {
-            document.getElementById('mic-btn').classList.remove('active-green');
-            if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
-        };
         recognition.onresult = (e) => {
             const t = e.results[0][0].transcript;
             addBubble(t, "user", true);
-            askAI(t, isVoiceActive);
-            isVoiceActive = false;
+            askAI(t);
         };
-
-        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
-        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) {
                 addBubble(e.target.value, "user", true);
-                askAI(e.target.value, false);
+                askAI(e.target.value);
                 e.target.value = "";
             }
         };
 
-        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
+        function toggleTheme() {
+            document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light');
+        }
     </script>
 </body>
 </html>
