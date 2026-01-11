@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assistant</title>
     <style>
-        /* Verhindert den Code-Salat: Alles CSS ist hier sicher verpackt */
         body {
             margin: 0;
             background: #0f0f10;
@@ -36,13 +35,13 @@
             border-radius: 20px;
             max-width: 80%;
             animation: fadeIn 0.3s ease;
+            word-wrap: break-word;
         }
         .user { align-self: flex-end; background: #333; }
         .ai { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* UNTEN VERANKERTE LEISTE */
         .footer {
             position: fixed;
             bottom: 30px;
@@ -57,7 +56,7 @@
             width: 90%;
             max-width: 600px;
             background: rgba(30, 30, 35, 0.7);
-            backdrop-filter: blur(25px); /* BLUR EFFEKT */
+            backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 40px;
@@ -65,7 +64,6 @@
             transition: all 0.3s ease;
         }
 
-        /* ELEGANTES LEUCHTEN BEIM TIPPEN */
         .pill:focus-within {
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
@@ -84,8 +82,8 @@
 
         input::placeholder { color: #888; }
 
-        svg { fill: #bdc1c6; width: 24px; cursor: pointer; }
-        .listening svg { fill: #ff4b4b; filter: drop-shadow(0 0 8px #ff4b4b); }
+        #mic svg { fill: #bdc1c6; width: 24px; cursor: pointer; display: block; }
+        .listening svg { fill: #ff4b4b !important; filter: drop-shadow(0 0 8px #ff4b4b); }
     </style>
 </head>
 <body>
@@ -95,20 +93,26 @@
     </div>
 
     <div class="footer">
-        <div class="pill" id="pill">
-            <input type="text" id="input" placeholder="Frag mich etwas..." autocomplete="off">
+        <div class="pill" id="pill-container">
+            <input type="text" id="input-field" placeholder="Frag mich etwas..." autocomplete="off">
             <div id="mic"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
     </div>
 
     <script>
-                const API_KEY = "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"; // Hier deinen vollständigen Key lassen
-        const inputField = document.getElementById('input');
+        // HIER DEINEN KEY EINSETZEN
+        const API_KEY = "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"; 
+
+        const inputField = document.getElementById('input-field');
         const chatArea = document.getElementById('chat-area');
+        const micBtn = document.getElementById('mic');
 
         async function askAI(text) {
+            if (!text.trim()) return;
+            
             addMsg(text, 'user');
             const aiMsg = addMsg("...", 'ai');
+
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
@@ -121,15 +125,16 @@
                         messages: [{role: "user", content: text}] 
                     })
                 });
-
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama3-8b-8192", messages: [{role: "user", content: text}] })
-                });
+                
                 const data = await res.json();
-                aiMsg.innerText = data.choices[0].message.content;
-            } catch (e) { aiMsg.innerText = "Fehler: Key prüfen!"; }
+                if (data.choices && data.choices[0]) {
+                    aiMsg.innerText = data.choices[0].message.content;
+                } else {
+                    aiMsg.innerText = "Fehler: Antwort konnte nicht geladen werden.";
+                }
+            } catch (e) { 
+                aiMsg.innerText = "Fehler: Verbindung zur KI fehlgeschlagen. Prüfe deinen Key!"; 
+            }
         }
 
         function addMsg(t, s) {
@@ -141,19 +146,32 @@
             return d;
         }
 
-        inputField.onkeypress = (e) => {
+        inputField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && inputField.value) {
                 askAI(inputField.value);
                 inputField.value = "";
             }
-        };
+        });
 
-        // Sprachfunktion
+        // Sprachsteuerung
         const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (Rec) {
-            const r = new Rec(); r.lang = 'de-DE';
-            document.getElementById('mic').onclick = () => r.start();
-            r.onresult = (e) => { askAI(e.results[0][0].transcript); };
+            const r = new Rec(); 
+            r.lang = 'de-DE';
+            
+            micBtn.onclick = () => {
+                r.start();
+                micBtn.classList.add('listening');
+            };
+
+            r.onresult = (e) => { 
+                const transcript = e.results[0][0].transcript;
+                askAI(transcript); 
+            };
+
+            r.onend = () => {
+                micBtn.classList.remove('listening');
+            };
         }
     </script>
 </body>
