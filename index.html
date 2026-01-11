@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -15,9 +16,9 @@
             --bubble-user: #007aff; 
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
-            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-glass: rgba(255, 255, 255, 0.12);
             --header-bg: rgba(11, 11, 12, 0.7);
-            --glass-blur: blur(40px);
+            --glass-blur: blur(25px);
             --fade-color: #0b0b0c;
         }
 
@@ -26,7 +27,7 @@
             --bubble-user: #007aff;
             --bubble-ai: #ffffff;
             --text-main: #1c1c1e;
-            --border-glass: rgba(0, 0, 0, 0.08);
+            --border-glass: rgba(0, 0, 0, 0.1);
             --header-bg: rgba(242, 242, 247, 0.7);
             --fade-color: #f2f2f7;
         }
@@ -49,29 +50,33 @@
         
         #chat-area {
             position: absolute; inset: 0;
-            padding: calc(85px + env(safe-area-inset-top)) 20px 160px 20px; 
+            padding: calc(85px + env(safe-area-inset-top)) 20px 170px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Der Fade-Layer für den Übergang */
+        /* Der Fade-Layer im Hintergrund der Eingabe */
         .input-fade-overlay {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 200px; 
-            background: linear-gradient(to top, var(--fade-color) 40%, transparent 100%);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 220px; 
+            background: linear-gradient(to top, var(--fade-color) 45%, transparent 100%);
             pointer-events: none; z-index: 90;
         }
 
         .footer { 
             position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
-            width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; 
+            width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 110; gap: 10px; 
         }
         
+        /* Die Pille mit aktivem Blur-Effekt */
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--header-bg); 
-            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: var(--header-bg); /* Nutzt die transparente Header-Farbe */
+            backdrop-filter: var(--glass-blur); 
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 30px; padding: 6px 15px; 
+            border: 1px solid var(--border-glass); 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
@@ -79,11 +84,11 @@
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
         .user-container { align-self: flex-end; }
         .ai-container { align-self: flex-start; }
-        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
 
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.5); pointer-events: none; z-index: 111; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -108,7 +113,7 @@
 
     <div id="chat-area">
         <div class="bubble-container ai-container">
-            <div class="bubble ai">System bereit. Alle Symbole und Effekte geladen.</div>
+            <div class="bubble ai">Blur-Effekt wiederhergestellt. Das Eingabefeld zeichnet Nachrichten jetzt wieder milchig weich.</div>
         </div>
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px; font-weight:500;">NEXUS denkt nach...</div>
     </div>
