@@ -39,12 +39,10 @@
         }
         .header-bar img { height: 40px; width: auto; border-radius: 6px; }
 
-        /* NEW CHAT BUTTON OBEN RECHTS */
         .new-chat-btn {
             cursor: pointer; padding: 8px; display: flex; align-items: center;
             border-radius: 50%; transition: background 0.3s;
         }
-        .new-chat-btn:active { background: rgba(255,255,255,0.1); }
         .new-chat-btn svg { fill: #a0a0a0; width: 22px; }
 
         #chat-area {
@@ -75,11 +73,11 @@
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
 
-        /* LIVE ANIMATION */
+        /* LIVE OVERLAY */
         #live-overlay {
             position: fixed; inset: 0; background: #000; z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 100px 0;
+            padding: 80px 0;
         }
         .orb-container { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
         .orb-layer {
@@ -97,6 +95,16 @@
             66% { transform: rotate(240deg) scale(0.9); border-radius: 55% 45% 50% 50% / 50% 50% 55% 45%; }
             100% { transform: rotate(360deg) scale(1); border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; }
         }
+
+        .live-bottom-controls { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        /* UNTERBRECHEN BUTTON */
+        #interrupt-btn {
+            display: none; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-glass);
+            color: white; padding: 12px 25px; border-radius: 25px; font-size: 14px;
+            cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s;
+        }
+        #interrupt-btn:active { background: rgba(255, 255, 255, 0.2); }
 
         .live-controls { display: flex; gap: 25px; background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); }
         .live-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
@@ -136,8 +144,11 @@
             <div class="orb-layer"></div>
             <div class="orb-layer"></div>
         </div>
-        <div class="live-controls">
-            <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
+        <div class="live-bottom-controls">
+            <button id="interrupt-btn" onclick="interruptAI()">Unterbrechen</button>
+            <div class="live-controls">
+                <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
+            </div>
         </div>
     </div>
 
@@ -166,18 +177,11 @@
             };
         }
 
-        // NEUER CHAT LOGIK
         function createNewChat() {
             const area = document.getElementById('chat-area');
             const copyright = document.getElementById('copyright-tag');
-            
-            // Entfernt alle Bubbles außer dem Copyright-Tag
-            while (area.firstChild && area.firstChild !== copyright) {
-                area.removeChild(area.firstChild);
-            }
-            
-            // Erste Begrüßung wieder hinzufügen
-            addMsg("NEXUS System zurückgesetzt. Wie kann ich dir erneut helfen?", 'ai');
+            while (area.firstChild && area.firstChild !== copyright) { area.removeChild(area.firstChild); }
+            addMsg("NEXUS System zurückgesetzt. Wie kann ich dir helfen?", 'ai');
         }
 
         async function askAI(text, voice) {
@@ -199,8 +203,25 @@
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') recognition.start(); };
+            
+            // Button einblenden wenn KI spricht
+            if(document.getElementById('live-overlay').style.display === 'flex') {
+                document.getElementById('interrupt-btn').style.display = 'block';
+            }
+
+            u.onend = () => { 
+                document.getElementById('interrupt-btn').style.display = 'none';
+                if(document.getElementById('live-overlay').style.display === 'flex') recognition.start(); 
+            };
             window.speechSynthesis.speak(u);
+        }
+
+        function interruptAI() {
+            window.speechSynthesis.cancel(); // Stoppt die Stimme sofort
+            document.getElementById('interrupt-btn').style.display = 'none';
+            if (recognition) {
+                try { recognition.start(); } catch(e) {} // Startet Mikrofon neu
+            }
         }
 
         function addMsg(t, s) {
@@ -219,6 +240,7 @@
         };
         document.getElementById('close-live').onclick = () => {
             document.getElementById('live-overlay').style.display = 'none';
+            document.getElementById('interrupt-btn').style.display = 'none';
             isVoiceSession = false; releaseWakeLock(); window.speechSynthesis.cancel();
             if(recognition) recognition.stop();
         };
