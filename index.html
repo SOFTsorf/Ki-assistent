@@ -27,91 +27,83 @@
             font-family: -apple-system, system-ui, sans-serif; overflow: hidden; height: 100vh;
         }
 
-        /* HEADER MIT BLUR EFFEKT */
+        /* HEADER */
         .header-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
-            background: rgba(11, 11, 12, 0.75);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-bottom: 1px solid var(--border-glass);
-            display: flex;
-            align-items: flex-end;
-            padding: 0 20px 12px 20px;
-            z-index: 1000;
-            box-sizing: border-box;
+            background: rgba(11, 11, 12, 0.75); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--border-glass);
+            display: flex; align-items: flex-end; padding: 0 20px 12px 20px; 
+            z-index: 1000; box-sizing: border-box;
         }
-
-        .header-bar img {
-            height: 40px;
-            width: auto;
-            border-radius: 6px;
-        }
+        .header-bar img { height: 40px; width: auto; border-radius: 6px; }
 
         #chat-area {
             height: calc(100vh - 120px); 
             padding: calc(85px + env(safe-area-inset-top)) 20px 20px 20px; 
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
         }
 
         .bubble {
             padding: 14px 20px; border-radius: 18px; max-width: 80%;
             line-height: 1.6; font-size: 16px; position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            word-wrap: break-word;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); word-wrap: break-word;
         }
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 40px; }
 
-        .copyright {
-            text-align: center;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.2);
-            padding: 10px 0 40px 0;
-            width: 100%;
-            order: 9999;
-        }
-
-        .code-container { position: relative; margin: 10px 0; }
-        pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: monospace; border: 1px solid #333; font-size: 14px; }
-        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-        b { color: #fff; font-weight: bold; }
+        .copyright { text-align: center; font-size: 11px; color: rgba(255, 255, 255, 0.2); padding: 10px 0 40px 0; width: 100%; order: 9999; }
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
         .pill {
             display: flex; align-items: center; width: 92%; max-width: 650px;
             background: rgba(30, 31, 33, 0.7); backdrop-filter: blur(30px) saturate(180%);
             border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 12px; }
-        .icon-btn { cursor: pointer; padding: 8px; transition: 0.2s; display: flex; align-items: center; }
+        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
-        
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
 
+        /* --- ELEGANTE LIVE ANIMATION (ChatGPT Style) --- */
         #live-overlay {
             position: fixed; inset: 0; background: #000; z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 80px 0;
+            padding: 100px 0;
         }
-        .visualizer-ring {
-            width: 140px; height: 140px; border-radius: 50%;
-            border: 2px solid var(--accent-green); animation: pulse 2s infinite;
+
+        .orb-container {
+            position: relative; width: 200px; height: 200px;
+            display: flex; align-items: center; justify-content: center;
         }
+
+        /* Die flüssigen Layer */
+        .orb-layer {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%;
+            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%);
+            filter: blur(20px); opacity: 0.4;
+            animation: moveOrb 6s infinite linear;
+        }
+        .orb-layer:nth-child(2) {
+            width: 90%; height: 95%; animation-duration: 8s; 
+            animation-direction: reverse; opacity: 0.3; background: var(--accent-green);
+        }
+        .orb-layer:nth-child(3) {
+            width: 110%; height: 100%; animation-duration: 4s; opacity: 0.2;
+        }
+
+        @keyframes moveOrb {
+            0% { transform: rotate(0deg) scale(1); border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; }
+            33% { transform: rotate(120deg) scale(1.1); border-radius: 50% 50% 55% 45% / 45% 55% 50% 50%; }
+            66% { transform: rotate(240deg) scale(0.9); border-radius: 55% 45% 50% 50% / 50% 50% 55% 45%; }
+            100% { transform: rotate(360deg) scale(1); border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; }
+        }
+
         .live-controls { display: flex; gap: 25px; background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); }
         .live-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
         .btn-close { background: #eb4444; }
-
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
     </style>
 </head>
 <body>
@@ -121,7 +113,7 @@
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir heute helfen?</div>
+        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir helfen?</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
@@ -138,8 +130,14 @@
     </div>
 
     <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 2px; font-weight: bold;">LIVE MODUS AKTIV</div>
-        <div class="visualizer-ring"></div>
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold; font-size: 14px;">NEXUS LIVE</div>
+        
+        <div class="orb-container">
+            <div class="orb-layer"></div>
+            <div class="orb-layer"></div>
+            <div class="orb-layer"></div>
+        </div>
+
         <div class="live-controls">
             <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
         </div>
@@ -153,31 +151,16 @@
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
 
-        // WakeLock Funktionen (Bildschirm anlassen)
         async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {
-                console.log("WakeLock Fehler:", err);
-            }
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         }
-
-        function releaseWakeLock() {
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
-            }
-        }
+        function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release().then(() => wakeLock = null); } }
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
             recognition.lang = 'de-DE';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-            recognition.onstart = () => { document.getElementById('mic-btn').classList.add('active-green'); };
-            recognition.onerror = () => { document.getElementById('mic-btn').classList.remove('active-green'); };
-            recognition.onend = () => { document.getElementById('mic-btn').classList.remove('active-green'); };
+            recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+            recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 addMsg(transcript, 'user');
@@ -185,22 +168,8 @@
             };
         }
 
-        function startListening() {
-            if (recognition) { try { recognition.start(); } catch (e) { recognition.stop(); } }
-        }
-
-        function parseContent(text) {
-            let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
-                const id = 'code-' + Math.random().toString(36).substr(2, 9);
-                return `<div class="code-container"><button class="copy-btn" onclick="copyCode('${id}')">Kopieren</button><pre><code id="${id}">${code.trim()}</code></pre></div>`;
-            });
-            return html;
-        }
-
         async function askAI(text, voice) {
             const msg = addMsg("...", 'ai');
-            scrollToBottom();
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
@@ -209,9 +178,8 @@
                 });
                 const data = await res.json();
                 const answer = data.choices[0].message.content;
-                msg.innerHTML = parseContent(answer);
+                msg.innerText = answer;
                 if (voice) speak(answer);
-                scrollToBottom();
             } catch (e) { msg.innerText = "Fehler!"; }
         }
 
@@ -219,60 +187,36 @@
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
             u.lang = 'de-DE';
-            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') startListening(); };
+            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') recognition.start(); };
             window.speechSynthesis.speak(u);
         }
 
         function addMsg(t, s) {
             const d = document.createElement('div');
-            d.className = `bubble ${s}`;
-            d.innerHTML = s === 'ai' ? parseContent(t) : t;
+            d.className = `bubble ${s}`; d.innerText = t;
             const area = document.getElementById('chat-area');
-            const copyright = document.getElementById('copyright-tag');
-            area.insertBefore(d, copyright); 
-            scrollToBottom();
+            area.insertBefore(d, document.getElementById('copyright-tag')); 
+            area.scrollTop = area.scrollHeight;
             return d;
         }
 
-        function scrollToBottom() {
-            const chat = document.getElementById('chat-area');
-            chat.scrollTop = chat.scrollHeight;
-        }
-
-        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; startListening(); };
-        
+        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; recognition.start(); };
         document.getElementById('live-start-btn').onclick = () => {
             document.getElementById('live-overlay').style.display = 'flex';
-            isVoiceSession = true;
-            requestWakeLock(); // Aktiviert Bildschirmsperre
-            startListening();
+            isVoiceSession = true; requestWakeLock(); recognition.start();
         };
-
         document.getElementById('close-live').onclick = () => {
             document.getElementById('live-overlay').style.display = 'none';
-            isVoiceSession = false;
-            releaseWakeLock(); // Deaktiviert Bildschirmsperre
-            window.speechSynthesis.cancel();
+            isVoiceSession = false; releaseWakeLock(); window.speechSynthesis.cancel();
             if(recognition) recognition.stop();
         };
 
         document.getElementById('input-field').onkeypress = (e) => {
             if (e.key === 'Enter' && e.target.value) {
-                isVoiceSession = false;
-                addMsg(e.target.value, 'user');
-                askAI(e.target.value, false);
-                e.target.value = "";
+                isVoiceSession = false; addMsg(e.target.value, 'user');
+                askAI(e.target.value, false); e.target.value = "";
             }
         };
-
-        function copyCode(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); }
-        
-        // Stellt sicher, dass WakeLock nach Minimieren wieder aktiv wird
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                await requestWakeLock();
-            }
-        });
     </script>
 </body>
 </html>
