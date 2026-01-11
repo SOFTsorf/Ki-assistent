@@ -102,17 +102,26 @@
     </div>
 
     <script>
-        const API_KEY = "gsk_x8Uud..."; // Dein Key (nicht verändern)
-const inputField = document.getElementById('input');
-const chatArea = document.getElementById('chat-area');
-
-async function askAI(text) {
-('chat-area');
+                const API_KEY = "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"; // Hier deinen vollständigen Key lassen
+        const inputField = document.getElementById('input');
+        const chatArea = document.getElementById('chat-area');
 
         async function askAI(text) {
             addMsg(text, 'user');
             const aiMsg = addMsg("...", 'ai');
             try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { 
+                        "Authorization": "Bearer " + API_KEY, 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ 
+                        model: "llama3-8b-8192", 
+                        messages: [{role: "user", content: text}] 
+                    })
+                });
+
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
