@@ -14,8 +14,9 @@
             --bubble-user: #2b2c2f;
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
-            --border-glass: rgba(255, 255, 255, 0.12);
-            --header-bg: rgba(11, 11, 12, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --header-bg: rgba(11, 11, 12, 0.6); /* Transparenter für besseren Blur */
+            --glass-blur: blur(40px); /* Erhöhter Blur-Effekt */
         }
 
         [data-theme="light"] {
@@ -23,8 +24,8 @@
             --bubble-user: #007aff;
             --bubble-ai: #ffffff;
             --text-main: #1c1c1e;
-            --border-glass: rgba(0, 0, 0, 0.1);
-            --header-bg: rgba(242, 242, 247, 0.8);
+            --border-glass: rgba(0, 0, 0, 0.08);
+            --header-bg: rgba(242, 242, 247, 0.6);
         }
 
         body {
@@ -33,11 +34,13 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        /* Eleganter Header mit starkem Blur */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: calc(65px + env(safe-area-inset-top));
-            background: var(--header-bg); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glass);
+            background: var(--header-bg); 
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
+            border-bottom: 1px solid var(--border-glass);
             display: flex; align-items: flex-end; justify-content: space-between;
             padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
         }
@@ -56,16 +59,23 @@
             box-sizing: border-box; scroll-behavior: smooth;
         }
 
-        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
 
         .copyright { text-align: center; font-size: 11px; color: rgba(128, 128, 128, 0.4); padding: 20px 0; width: 100%; order: 9999; }
 
         .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .pill { display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--bubble-ai); backdrop-filter: blur(20px); border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); }
-        input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         
+        /* Elegante Pill mit starkem Blur */
+        .pill { 
+            display: flex; align-items: center; width: 92%; max-width: 650px; 
+            background: var(--header-bg); 
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
+        }
+        
+        input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
 
@@ -181,7 +191,7 @@
                     body: JSON.stringify({ 
                         model: "llama-3.3-70b-versatile", 
                         messages: [
-                            {role: "system", content: "Antworte immer kurz und bündig auf Deutsch."}, // SYSTEM PROMPT FÜR DEUTSCH
+                            {role: "system", content: "Antworte immer auf Deutsch."},
                             {role: "user", content: text}
                         ] 
                     })
@@ -206,16 +216,14 @@
         }
 
         function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
-
         recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
         recognition.onend = () => {
             document.getElementById('mic-btn').classList.remove('active-green');
             if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){}
         };
-
         recognition.onresult = (e) => {
             const t = e.results[0][0].transcript;
-            if(isLive && (t.toLowerCase() === "stop" || t.toLowerCase() === "stopp")) { closeLive(); return; }
+            if(isLive && (t.toLowerCase().includes("stop") || t.toLowerCase().includes("stopp"))) { closeLive(); return; }
             addMsg(t, 'user');
             askAI(t, isVoiceActive);
             isVoiceActive = false; 
@@ -233,12 +241,11 @@
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; try { recognition.start(); } catch(e){} }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
         function createNewChat() { location.reload(); }
+        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) try { recognition.start(); } catch(e){} }
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) { addMsg(e.target.value, 'user'); askAI(e.target.value, false); e.target.value = ""; }
         };
-
-        function interruptAI() { window.speechSynthesis.cancel(); document.getElementById('interrupt-btn').style.display = 'none'; if(isLive) try { recognition.start(); } catch(e){} }
     </script>
 </body>
 </html>
