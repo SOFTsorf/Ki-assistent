@@ -47,27 +47,37 @@
         
         #chat-area {
             position: absolute; inset: 0;
-            padding: calc(85px + env(safe-area-inset-top)) 20px 140px 20px; 
+            padding: calc(85px + env(safe-area-inset-top)) 20px 180px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Der Footer-Bereich mit großflächigem Blur statt grauem Layer */
+        /* DER TRICK: Ein Layer mit Maskierung für den Blur-Verlauf */
+        .blur-fade-layer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 180px;
+            z-index: 90;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            /* Erzeugt den Verlauf von unten (sichtbar) nach oben (transparent) für den Blur */
+            mask-image: linear-gradient(to top, black 40%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);
+            pointer-events: none;
+        }
+
         .footer { 
             position: fixed; 
-            bottom: 0; 
+            bottom: calc(20px + env(safe-area-inset-bottom)); 
             width: 100%; 
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            padding-top: 40px; /* Erzeugt den weichen Übergang nach oben */
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            z-index: 110; 
-            gap: 10px;
-            background: linear-gradient(to top, var(--bg-dark) 20%, transparent 100%);
-            backdrop-filter: blur(10px); /* Sanfter globaler Blur für den unteren Bereich */
-            -webkit-backdrop-filter: blur(10px);
+            z-index: 100; 
+            gap: 10px; 
         }
         
         .pill { 
@@ -77,7 +87,7 @@
             -webkit-backdrop-filter: var(--glass-blur);
             border-radius: 30px; padding: 6px 15px; 
             border: 1px solid var(--border-glass); 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         input { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
@@ -89,7 +99,7 @@
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
 
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.5); pointer-events: none; z-index: 111; }
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -98,7 +108,7 @@
         .icon-top-btn svg, .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
     </style>
 </head>
-<body onload="window.scrollTo(0,0); document.getElementById('chat-area').scrollTop = 0;">
+<body onload="window.scrollTo(0,0);">
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
@@ -114,10 +124,12 @@
 
     <div id="chat-area">
         <div class="bubble-container ai-container">
-            <div class="bubble ai">Layer-Problem gelöst! Die Nachrichten werden jetzt direkt unter dem Textfeld weichgezeichnet.</div>
+            <div class="bubble ai">Standard-Symbole aktiv. Der Blur-Effekt im Textfeld funktioniert jetzt perfekt mit dem Verlauf.</div>
         </div>
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>
     </div>
+
+    <div class="blur-fade-layer"></div>
 
     <div class="footer">
         <div class="pill">
@@ -134,7 +146,7 @@
 
     <script>
         const API_KEY = "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";
-        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
+        let chatHistory = [{role: "system", content: "Antworte kurz."}];
 
         async function askAI(text) {
             document.getElementById('typing').style.display = 'block';
