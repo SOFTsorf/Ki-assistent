@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assistant</title>
     <style>
+        /* Grunddesign & Hintergrund */
         body {
             margin: 0;
             background: #0f0f10;
@@ -12,11 +13,12 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: white;
             overflow: hidden;
         }
 
+        /* Chat Verlauf */
         #chat-area {
             flex: 1;
             padding: 20px;
@@ -36,20 +38,22 @@
             max-width: 85%;
             animation: fadeIn 0.3s ease;
             word-wrap: break-word;
+            line-height: 1.5;
             font-size: 16px;
-            line-height: 1.4;
         }
         .user { align-self: flex-end; background: #333; color: white; border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; color: #e0e0e0; }
+        .ai { align-self: flex-start; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-bottom-left-radius: 4px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Eingabebereich unten */
         .footer {
             position: fixed;
             bottom: 30px;
             width: 100%;
             display: flex;
             justify-content: center;
+            z-index: 1000;
         }
 
         .pill {
@@ -90,18 +94,20 @@
 <body>
 
     <div id="chat-area">
-        <div class="bubble ai">Hallo! Ich bin bereit. Frag mich etwas...</div>
+        <div class="bubble ai">System bereit. Modell: Llama 3.3 online. Wie kann ich helfen?</div>
     </div>
 
     <div class="footer">
         <div class="pill">
             <input type="text" id="input-field" placeholder="Frag mich etwas..." autocomplete="off">
-            <div id="mic"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+            <div id="mic">
+                <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            </div>
         </div>
     </div>
 
     <script>
-        // ACHTUNG: Hier deinen kompletten Key zwischen die Anführungszeichen setzen!
+        // DEIN KEY HIER EINSETZEN
         const API_KEY = "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"; 
 
         const inputField = document.getElementById('input-field');
@@ -122,7 +128,7 @@
                         "Content-Type": "application/json" 
                     },
                     body: JSON.stringify({ 
-                        model: "llama3-8b-8192", 
+                        model: "llama-3.3-70b-versatile", 
                         messages: [{role: "user", content: text}] 
                     })
                 });
@@ -132,13 +138,20 @@
                 if (data.error) {
                     aiMsg.innerText = "Fehler von Groq: " + data.error.message;
                 } else if (data.choices && data.choices[0]) {
-                    aiMsg.innerText = data.choices[0].message.content;
-                } else {
-                    aiMsg.innerText = "Unbekannter Fehler beim Laden.";
+                    const answer = data.choices[0].message.content;
+                    aiMsg.innerText = answer;
+                    speak(answer); // Antwort vorlesen
                 }
             } catch (e) { 
-                aiMsg.innerText = "Verbindung fehlgeschlagen. Bitte Internet und API-Key prüfen."; 
+                aiMsg.innerText = "Verbindung fehlgeschlagen. Bitte Internet prüfen."; 
             }
+        }
+
+        // Sprachausgabe (TTS)
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            window.speechSynthesis.speak(utterance);
         }
 
         function addMsg(t, s) {
@@ -157,11 +170,15 @@
             }
         };
 
+        // Sprachsteuerung (Mikrofon)
         const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (Rec) {
             const r = new Rec(); r.lang = 'de-DE';
             micBtn.onclick = () => { r.start(); micBtn.classList.add('listening'); };
-            r.onresult = (e) => { askAI(e.results[0][0].transcript); };
+            r.onresult = (e) => { 
+                const transcript = e.results[0][0].transcript;
+                askAI(transcript); 
+            };
             r.onend = () => micBtn.classList.remove('listening');
         }
     </script>
