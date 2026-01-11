@@ -69,18 +69,13 @@
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
 
-        /* RE-DESIGNED LIVE OVERLAY */
         #live-overlay { 
             position: fixed; inset: 0; background: #000; z-index: 2000; 
             display: none; flex-direction: column; align-items: center; 
             justify-content: space-between; padding: 100px 0 60px 0; 
         }
 
-        .orb-container { 
-            position: relative; width: 220px; height: 220px; 
-            display: flex; align-items: center; justify-content: center; 
-        }
-        
+        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
         .orb-layer { 
             position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
             background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
@@ -183,7 +178,13 @@
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
+                    body: JSON.stringify({ 
+                        model: "llama-3.3-70b-versatile", 
+                        messages: [
+                            {role: "system", content: "Antworte immer kurz und bündig auf Deutsch."}, // SYSTEM PROMPT FÜR DEUTSCH
+                            {role: "user", content: text}
+                        ] 
+                    })
                 });
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
