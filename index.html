@@ -19,7 +19,6 @@
             font-family: -apple-system, system-ui, sans-serif; overflow: hidden; height: 100vh;
         }
 
-        /* Chat Bereich - Clean & Auto-Scroll */
         #chat-area {
             height: calc(100vh - 110px); padding: 20px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 20px;
@@ -35,64 +34,42 @@
         .user { align-self: flex-end; background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.05); border-bottom-left-radius: 4px; padding-bottom: 40px; }
 
-        /* Code Block Styling */
+        /* Code & Markdown */
         .code-container { position: relative; margin: 10px 0; }
-        pre {
-            background: #000 !important; color: #adbac7; padding: 15px;
-            border-radius: 12px; overflow-x: auto; font-family: monospace;
-            border: 1px solid #333; font-size: 14px;
-        }
-        .copy-btn {
-            position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1);
-            border: none; color: white; padding: 4px 8px; border-radius: 6px;
-            font-size: 11px; cursor: pointer; backdrop-filter: blur(5px);
-        }
+        pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-family: monospace; border: 1px solid #333; font-size: 14px; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        b { color: #fff; font-weight: bold; }
 
-        .speak-btn { position: absolute; bottom: 8px; right: 12px; background: none; border: none; cursor: pointer; opacity: 0.5; }
-        .speak-btn svg { fill: #fff; width: 16px; }
-
-        /* Eingabeleiste - Verbesserter Blur & Glow */
+        /* UI Elements */
         .footer { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 100; }
         .pill {
             display: flex; align-items: center; width: 92%; max-width: 650px;
             background: rgba(30, 31, 33, 0.7); backdrop-filter: blur(30px) saturate(180%);
-            -webkit-backdrop-filter: blur(30px) saturate(180%);
             border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         input { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 12px; }
-
         .icon-btn { cursor: pointer; padding: 8px; transition: 0.2s; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
+        
+        /* Das grüne Leuchten */
+        .active-green svg { 
+            fill: var(--accent-green) !important; 
+            filter: drop-shadow(0 0 10px var(--accent-green)); 
+        }
 
-        /* LIVE MODUS - Kein Video, nur High-Tech UI */
         #live-overlay {
             position: fixed; inset: 0; background: #000; z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: space-between;
             padding: 40px 0;
         }
-        
-        .live-header { z-index: 2001; margin-top: 50px; text-align: center; }
-        .live-status { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-green); }
-
         .visualizer-ring {
             width: 140px; height: 140px; border-radius: 50%;
-            border: 2px solid var(--accent-green); z-index: 2001;
-            box-shadow: 0 0 40px rgba(0,255,136,0.2);
-            animation: pulse 2s infinite;
+            border: 2px solid var(--accent-green); animation: pulse 2s infinite;
         }
-
-        .live-controls {
-            z-index: 2001; margin-bottom: 20px; display: flex; gap: 25px;
-            background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px;
-            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
-        }
+        .live-controls { display: flex; gap: 25px; background: rgba(255,255,255,0.08); padding: 15px 30px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); }
         .live-btn { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-        .btn-pause { background: rgba(255,255,255,0.1); }
         .btn-close { background: #eb4444; }
-
-        b { color: #fff; font-weight: bold; }
 
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
     </style>
@@ -100,7 +77,7 @@
 <body>
 
     <div id="chat-area">
-        <div class="bubble ai">Bereit. Wie kann ich heute unterstützen?</div>
+        <div class="bubble ai">Mikrofon-Test bereit. Klicke auf das Mikrofon, um zu sprechen.</div>
     </div>
 
     <div class="footer">
@@ -116,27 +93,62 @@
     </div>
 
     <div id="live-overlay">
-        <div class="live-header">
-            <div class="live-status" id="status-label">● Live Mode</div>
-        </div>
-        
-        <div class="visualizer-ring" id="ring"></div>
-
+        <div style="color: var(--accent-green); letter-spacing: 2px;">LIVE MODUS AKTIV</div>
+        <div class="visualizer-ring"></div>
         <div class="live-controls">
-            <button class="live-btn btn-pause" id="toggle-pause"><svg id="p-icon" viewBox="0 0 24 24" width="22" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5z"/></svg></button>
             <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
         </div>
     </div>
 
     <script>
         const API_KEY = "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";
-        let paused = false, isVoiceSession = false;
+        let isVoiceSession = false;
 
-        const overlay = document.getElementById('live-overlay');
-        const pIcon = document.getElementById('p-icon');
-        const statusLabel = document.getElementById('status-label');
+        // --- Spracherkennung Initialisierung ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
 
-        // Hilfsfunktion: Markdown & Code Formatierung
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'de-DE';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                document.getElementById('mic-btn').classList.add('active-green');
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Mic Error:", event.error);
+                document.getElementById('mic-btn').classList.remove('active-green');
+                if(event.error === 'not-allowed') alert("Bitte Mikrofon-Zugriff im Browser erlauben!");
+            };
+
+            recognition.onend = () => {
+                document.getElementById('mic-btn').classList.remove('active-green');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                addMsg(transcript, 'user');
+                askAI(transcript, isVoiceSession);
+            };
+        } else {
+            alert("Dein Browser unterstützt keine Spracherkennung. Nutze Chrome oder Safari.");
+        }
+
+        // --- Funktionen ---
+
+        function startListening() {
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    recognition.stop(); // Falls sie schon läuft, stoppen und neu starten
+                }
+            }
+        }
+
         function parseContent(text) {
             let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
             html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
@@ -146,42 +158,7 @@
             return html;
         }
 
-        function copyCode(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText);
-            alert("Code kopiert!");
-        }
-
-        function scrollToBottom() {
-            const chatArea = document.getElementById('chat-area');
-            chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
-        }
-
-        // Live Start
-        document.getElementById('live-start-btn').onclick = () => {
-            overlay.style.display = 'flex';
-            isVoiceSession = true;
-            listen();
-        };
-
-        // Live Beenden
-        document.getElementById('close-live').onclick = () => {
-            overlay.style.display = 'none';
-            isVoiceSession = false;
-            window.speechSynthesis.cancel();
-        };
-
-        // Pause
-        document.getElementById('toggle-pause').onclick = () => {
-            paused = !paused;
-            statusLabel.innerText = paused ? "|| Pausiert" : "● Live Mode";
-            statusLabel.style.color = paused ? "#ffcc00" : "#00ff88";
-            pIcon.innerHTML = paused ? '<path d="M8 5v14l11-7z"/>' : '<path d="M6 19h4V5H6v14zm8-14v14h4V5z"/>';
-            if (paused) window.speechSynthesis.pause(); else window.speechSynthesis.resume();
-        };
-
-        // KI Logik
         async function askAI(text, voice) {
-            if (paused) return;
             const msg = addMsg("...", 'ai');
             scrollToBottom();
             try {
@@ -192,7 +169,7 @@
                 });
                 const data = await res.json();
                 const answer = data.choices[0].message.content;
-                msg.innerHTML = parseContent(answer) + `<button class="speak-btn" onclick="speak('${answer.replace(/'/g, "\\'")}')"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg></button>`;
+                msg.innerHTML = parseContent(answer);
                 if (voice) speak(answer);
                 scrollToBottom();
             } catch (e) { msg.innerText = "Fehler!"; }
@@ -200,32 +177,46 @@
 
         function speak(t) {
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE';
-            u.onend = () => { if(overlay.style.display === 'flex') listen(); };
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'de-DE';
+            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') startListening(); };
             window.speechSynthesis.speak(u);
         }
 
         function addMsg(t, s) {
-            const d = document.createElement('div'); d.className = `bubble ${s}`; 
-            d.innerHTML = s === 'user' ? t : parseContent(t);
+            const d = document.createElement('div');
+            d.className = `bubble ${s}`;
+            d.innerHTML = s === 'ai' ? parseContent(t) : t;
             document.getElementById('chat-area').appendChild(d);
+            scrollToBottom();
             return d;
         }
 
-        // Voice Recognition
-        const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const r = new Rec(); r.lang = 'de-DE';
-        function listen() { if(!paused) { r.start(); document.getElementById('mic-btn').classList.add('active-green'); } }
-        
-        r.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            addMsg(t, 'user');
-            askAI(t, isVoiceSession);
-        };
-        r.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+        function scrollToBottom() {
+            const chat = document.getElementById('chat-area');
+            chat.scrollTop = chat.scrollHeight;
+        }
 
-        document.getElementById('mic-btn').onclick = () => { isVoiceSession = true; listen(); };
-        
+        // --- Event Listener ---
+
+        document.getElementById('mic-btn').onclick = () => {
+            isVoiceSession = true;
+            startListening();
+        };
+
+        document.getElementById('live-start-btn').onclick = () => {
+            document.getElementById('live-overlay').style.display = 'flex';
+            isVoiceSession = true;
+            startListening();
+        };
+
+        document.getElementById('close-live').onclick = () => {
+            document.getElementById('live-overlay').style.display = 'none';
+            isVoiceSession = false;
+            window.speechSynthesis.cancel();
+            if(recognition) recognition.stop();
+        };
+
         document.getElementById('input-field').onkeypress = (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 isVoiceSession = false;
@@ -234,6 +225,10 @@
                 e.target.value = "";
             }
         };
+
+        function copyCode(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+        }
     </script>
 </body>
 </html>
