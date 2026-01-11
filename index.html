@@ -33,10 +33,19 @@
             height: calc(65px + env(safe-area-inset-top));
             background: rgba(11, 11, 12, 0.75); backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--border-glass);
-            display: flex; align-items: flex-end; padding: 0 20px 12px 20px; 
+            display: flex; align-items: flex-end; justify-content: space-between;
+            padding: 0 20px 12px 20px; 
             z-index: 1000; box-sizing: border-box;
         }
         .header-bar img { height: 40px; width: auto; border-radius: 6px; }
+
+        /* NEW CHAT BUTTON OBEN RECHTS */
+        .new-chat-btn {
+            cursor: pointer; padding: 8px; display: flex; align-items: center;
+            border-radius: 50%; transition: background 0.3s;
+        }
+        .new-chat-btn:active { background: rgba(255,255,255,0.1); }
+        .new-chat-btn svg { fill: #a0a0a0; width: 22px; }
 
         #chat-area {
             height: calc(100vh - 120px); 
@@ -66,33 +75,21 @@
         .icon-btn svg { fill: #a0a0a0; width: 22px; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
 
-        /* --- ELEGANTE LIVE ANIMATION (ChatGPT Style) --- */
+        /* LIVE ANIMATION */
         #live-overlay {
             position: fixed; inset: 0; background: #000; z-index: 2000;
             display: none; flex-direction: column; align-items: center; justify-content: space-between;
             padding: 100px 0;
         }
-
-        .orb-container {
-            position: relative; width: 200px; height: 200px;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Die flüssigen Layer */
+        .orb-container { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
         .orb-layer {
             position: absolute; width: 100%; height: 100%;
             border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%;
             background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%);
-            filter: blur(20px); opacity: 0.4;
-            animation: moveOrb 6s infinite linear;
+            filter: blur(20px); opacity: 0.4; animation: moveOrb 6s infinite linear;
         }
-        .orb-layer:nth-child(2) {
-            width: 90%; height: 95%; animation-duration: 8s; 
-            animation-direction: reverse; opacity: 0.3; background: var(--accent-green);
-        }
-        .orb-layer:nth-child(3) {
-            width: 110%; height: 100%; animation-duration: 4s; opacity: 0.2;
-        }
+        .orb-layer:nth-child(2) { width: 90%; height: 95%; animation-duration: 8s; animation-direction: reverse; opacity: 0.3; background: var(--accent-green); }
+        .orb-layer:nth-child(3) { width: 110%; height: 100%; animation-duration: 4s; opacity: 0.2; }
 
         @keyframes moveOrb {
             0% { transform: rotate(0deg) scale(1); border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; }
@@ -110,6 +107,9 @@
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" alt="NEXUS Logo">
+        <div class="new-chat-btn" onclick="createNewChat()">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
     </div>
 
     <div id="chat-area">
@@ -131,13 +131,11 @@
 
     <div id="live-overlay">
         <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold; font-size: 14px;">NEXUS LIVE</div>
-        
         <div class="orb-container">
             <div class="orb-layer"></div>
             <div class="orb-layer"></div>
             <div class="orb-layer"></div>
         </div>
-
         <div class="live-controls">
             <button class="live-btn btn-close" id="close-live"><svg viewBox="0 0 24 24" width="22" fill="white"><path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button>
         </div>
@@ -166,6 +164,20 @@
                 addMsg(transcript, 'user');
                 askAI(transcript, isVoiceSession);
             };
+        }
+
+        // NEUER CHAT LOGIK
+        function createNewChat() {
+            const area = document.getElementById('chat-area');
+            const copyright = document.getElementById('copyright-tag');
+            
+            // Entfernt alle Bubbles außer dem Copyright-Tag
+            while (area.firstChild && area.firstChild !== copyright) {
+                area.removeChild(area.firstChild);
+            }
+            
+            // Erste Begrüßung wieder hinzufügen
+            addMsg("NEXUS System zurückgesetzt. Wie kann ich dir erneut helfen?", 'ai');
         }
 
         async function askAI(text, voice) {
