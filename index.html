@@ -53,40 +53,23 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* DER TRICK: Ein Layer mit Maskierung für den Blur-Verlauf */
         .blur-fade-layer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 180px;
-            z-index: 90;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            /* Erzeugt den Verlauf von unten (sichtbar) nach oben (transparent) für den Blur */
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 180px; z-index: 90;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             mask-image: linear-gradient(to top, black 40%, transparent 100%);
             -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);
             pointer-events: none;
         }
 
         .footer { 
-            position: fixed; 
-            bottom: calc(20px + env(safe-area-inset-bottom)); 
-            width: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            z-index: 100; 
-            gap: 10px; 
+            position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
+            width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; 
         }
         
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--header-bg); 
-            backdrop-filter: var(--glass-blur); 
-            -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: 30px; padding: 6px 15px; 
-            border: 1px solid var(--border-glass); 
+            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
@@ -124,7 +107,7 @@
 
     <div id="chat-area">
         <div class="bubble-container ai-container">
-            <div class="bubble ai">Standard-Symbole aktiv. Der Blur-Effekt im Textfeld funktioniert jetzt perfekt mit dem Verlauf.</div>
+            <div class="bubble ai">Wie kann ich dir heute helfen?</div>
         </div>
         <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>
     </div>
