@@ -16,8 +16,8 @@
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.1);
-            --header-bg: rgba(11, 11, 12, 0.85);
-            --glass-blur: blur(25px);
+            --header-bg: rgba(11, 11, 12, 0.8);
+            --glass-blur: blur(30px);
             --sidebar-width: 280px;
         }
 
@@ -34,10 +34,21 @@
             border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between;
             padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
         }
+
+        /* SIDEBAR */
+        #sidebar {
+            position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
+            background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box;
+            display: flex; flex-direction: column;
+        }
+        #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
         
+        /* CHAT AREA */
         #chat-area {
-            position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 150px 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;
+            position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 160px 20px; 
+            overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth;
         }
 
         /* LIVE MODUS OVERLAY */
@@ -46,26 +57,18 @@
             display: none; flex-direction: column; align-items: center; justify-content: center;
             backdrop-filter: blur(50px); animation: fadeIn 0.4s ease;
         }
-        .live-status { color: var(--accent-green); font-size: 20px; font-weight: bold; margin-top: 30px; letter-spacing: 1px; }
         .live-circle {
-            width: 120px; height: 120px; border-radius: 50%; background: var(--accent-green);
-            box-shadow: 0 0 40px var(--accent-green); animation: pulse 2s infinite;
+            width: 140px; height: 140px; border-radius: 50%; background: var(--accent-green);
+            box-shadow: 0 0 50px var(--accent-green); animation: pulse 2s infinite;
         }
-        .close-live {
-            position: absolute; bottom: 50px; padding: 15px 40px; border-radius: 30px;
-            background: rgba(255,255,255,0.1); border: 1px solid var(--border-glass);
-            color: white; font-weight: bold; cursor: pointer;
-        }
-
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px var(--accent-green); }
-            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 60px var(--accent-green); }
-            100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px var(--accent-green); }
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
         }
 
-        /* MODAL */
+        /* CUSTOM MODAL */
         #custom-modal {
-            position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
+            position: fixed; inset: 0; z-index: 5000; display: none; align-items: center; justify-content: center;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
         }
         .modal-content {
@@ -73,12 +76,12 @@
             border-radius: 24px; padding: 25px; text-align: center;
         }
 
-        /* FOOTER & BLUR */
+        /* FOOTER MIT BLUR LAYER */
         .footer { 
             position: fixed; bottom: 0; left: 0; width: 100%; 
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            padding-top: 30px;
-            background: linear-gradient(to top, var(--bg-dark) 60%, transparent);
+            padding-top: 40px;
+            background: linear-gradient(to top, var(--bg-dark) 70%, transparent);
             backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             display: flex; flex-direction: column; align-items: center; z-index: 1000;
         }
@@ -90,19 +93,27 @@
         }
 
         input[type="text"] { flex: 1; background: none; border: none; outline: none; color: white; font-size: 16px; padding: 12px; }
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); margin-top: 10px; }
-
+        
         /* BUBBLES */
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; position: relative; }
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; position: relative; animation: slideUp 0.3s ease; }
         .user-container { align-self: flex-end; }
         .ai-container { align-self: flex-start; }
-        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; position: relative; padding-bottom: 25px; }
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; position: relative; padding-bottom: 25px; font-size: 16px; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
         .time-stamp { position: absolute; bottom: 6px; right: 12px; font-size: 9px; opacity: 0.5; }
 
+        /* BUTTONS */
+        .icon-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
         .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
         .live-icon svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
+        
+        .history-item { 
+            padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass);
+            margin-bottom: 8px; cursor: pointer; font-size: 14px;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -110,25 +121,35 @@
 
     <div id="live-overlay">
         <div class="live-circle"></div>
-        <div class="live-status" id="live-text">NEXUS hört zu...</div>
-        <div id="live-transcript" style="margin-top:20px; padding:0 30px; text-align:center; opacity:0.7;"></div>
-        <button class="close-live" onclick="stopLiveMode()">Beenden</button>
+        <div style="color:var(--accent-green); margin-top:30px; font-weight:bold; font-size:20px;">LIVE MODUS</div>
+        <div id="live-transcript" style="margin-top:20px; opacity:0.6; text-align:center; padding:0 20px;"></div>
+        <button onclick="stopLiveMode()" style="position:absolute; bottom:50px; background:rgba(255,255,255,0.1); color:white; border:1px solid var(--border-glass); padding:15px 40px; border-radius:30px; font-weight:bold;">Beenden</button>
     </div>
 
     <div id="custom-modal">
         <div class="modal-content">
-            <h3 style="color:#eb4444; margin:0 0 10px 0;">Verlauf löschen?</h3>
-            <p style="font-size:14px; opacity:0.8;">Alle Daten werden unwiderruflich gelöscht.</p>
+            <h3 style="color:#ff4444; margin:0 0 10px 0;">Verlauf löschen?</h3>
+            <p style="font-size:14px; opacity:0.8;">Alle gespeicherten Chats gehen verloren.</p>
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                <button onclick="confirmClear()" style="background:#eb4444; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">Löschen</button>
+                <button onclick="confirmClear()" style="background:#ff4444; color:white; border:none; padding:12px; border-radius:12px; font-weight:bold;">Ja, alles löschen</button>
                 <button onclick="closeModal()" style="background:rgba(255,255,255,0.1); color:white; border:none; padding:12px; border-radius:12px;">Abbrechen</button>
             </div>
         </div>
     </div>
 
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar">
+        <div style="margin-top:60px; color:var(--accent-green); font-weight:bold; font-size:14px; margin-bottom:15px;">DEINE CHATS</div>
+        <div id="history-list" style="flex:1; overflow-y:auto;"></div>
+        <button onclick="openModal()" style="background:rgba(255,68,68,0.1); color:#ff4444; border:1px solid rgba(255,68,68,0.2); padding:12px; border-radius:12px; font-weight:bold; cursor:pointer; margin-bottom:20px;">Verlauf leeren</button>
+    </div>
+
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
-        <div class="icon-btn" onclick="openModal()"><svg viewBox="0 0 24 24" style="fill:#eb4444; width:20px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
+        <div style="display:flex; gap:10px;">
+            <div class="icon-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+            <div class="icon-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" style="fill:var(--accent-green)"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
+        </div>
     </div>
 
     <div id="chat-area">
@@ -141,55 +162,52 @@
                 <svg viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>
             </div>
             <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
-            <div class="icon-btn" onclick="startMicOnly()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+            <div class="icon-btn" onclick="startMic()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
-        <div class="copyright">(c) 2026 - by Patrick Roth</div>
+        <div style="font-size:10px; color:rgba(128,128,128,0.4); margin-top:10px;">(c) 2026 - by Patrick Roth</div>
     </div>
 
     <script>
         const API_KEY = "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";
-        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = new SpeechRecognition();
+        let currentChatId = Date.now();
+        let chatHistory = [];
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'de-DE';
-        recognition.interimResults = true;
 
-        function initApp() { addBubble("Bereit für den Chat.", "ai"); }
+        function initApp() { renderHistory(); startNewChat(); }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('open');
+            document.querySelector('.sidebar-overlay').style.display = sb.classList.contains('open') ? 'block' : 'none';
+        }
 
         function openModal() { document.getElementById('custom-modal').style.display = 'flex'; }
         function closeModal() { document.getElementById('custom-modal').style.display = 'none'; }
-        function confirmClear() { localStorage.clear(); location.reload(); }
-
-        /* LIVE MODUS LOGIK */
-        function startLiveMode() {
-            document.getElementById('live-overlay').style.display = 'flex';
-            recognition.start();
+        
+        function confirmClear() {
+            localStorage.removeItem('nexus_chats');
+            renderHistory();
+            startNewChat();
+            closeModal();
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
-        function stopLiveMode() {
-            recognition.stop();
-            document.getElementById('live-overlay').style.display = 'none';
+        function startNewChat() {
+            currentChatId = Date.now();
+            chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
+            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px;">NEXUS denkt nach...</div>';
+            addBubble("Bereit für deine Fragen.", "ai");
         }
 
-        function startMicOnly() { recognition.start(); }
-
-        recognition.onresult = (e) => {
-            const transcript = e.results[0][0].transcript;
-            document.getElementById('live-transcript').innerText = transcript;
-            if(e.results[0].isFinal) {
-                addBubble(transcript, "user");
-                askAI(transcript);
-                if(document.getElementById('live-overlay').style.display === 'flex') {
-                    document.getElementById('live-text').innerText = "NEXUS antwortet...";
-                }
-            }
-        };
-
-        recognition.onend = () => {
-            if(document.getElementById('live-overlay').style.display === 'flex') {
-                setTimeout(() => recognition.start(), 1000); // Automatischer Restart im Live-Modus
-            }
-        };
+        function addBubble(text, side) {
+            const area = document.getElementById('chat-area');
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${side}-container`;
+            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}<span class="time-stamp">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span></div>`;
+            area.insertBefore(cont, document.getElementById('typing'));
+            area.scrollTop = area.scrollHeight;
+        }
 
         async function askAI(text) {
             document.getElementById('typing').style.display = 'block';
@@ -198,35 +216,56 @@
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory })
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
                 });
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
                 chatHistory.push({role: "assistant", content: ans});
                 addBubble(ans, "ai");
-                if(document.getElementById('live-overlay').style.display === 'flex') {
-                    document.getElementById('live-text').innerText = "NEXUS hört zu...";
-                    speak(ans);
-                }
+                saveToLocal();
             } catch(e) {}
             document.getElementById('typing').style.display = 'none';
         }
 
-        function speak(text) {
-            const synth = window.speechSynthesis;
-            const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = 'de-DE';
-            synth.speak(utter);
+        function saveToLocal() {
+            let chats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            chats[currentChatId] = { title: chatHistory[1]?.content.substring(0,30) || "Neuer Chat", messages: chatHistory };
+            localStorage.setItem('nexus_chats', JSON.stringify(chats));
+            renderHistory();
         }
 
-        function addBubble(text, side) {
-            const area = document.getElementById('chat-area');
-            const cont = document.createElement('div');
-            cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}<span class="time-stamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
-            area.insertBefore(cont, document.getElementById('typing'));
-            area.scrollTop = area.scrollHeight;
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            let chats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            Object.keys(chats).reverse().forEach(id => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = chats[id].title;
+                item.onclick = () => {
+                    currentChatId = id;
+                    chatHistory = chats[id].messages;
+                    document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px;">NEXUS denkt nach...</div>';
+                    chatHistory.forEach(m => { if(m.role !== 'system') addBubble(m.content, m.role === 'user' ? 'user' : 'ai'); });
+                    toggleSidebar();
+                };
+                list.appendChild(item);
+            });
         }
+
+        /* LIVE MODUS */
+        function startLiveMode() { document.getElementById('live-overlay').style.display = 'flex'; startMic(); }
+        function stopLiveMode() { document.getElementById('live-overlay').style.display = 'none'; recognition.stop(); }
+        function startMic() { try { recognition.start(); } catch(e) {} }
+
+        recognition.onresult = (e) => {
+            const t = e.results[0][0].transcript;
+            addBubble(t, "user");
+            askAI(t);
+            if(document.getElementById('live-overlay').style.display === 'flex') {
+                document.getElementById('live-transcript').innerText = t;
+            }
+        };
 
         document.getElementById('input-field').onkeypress = (e) => {
             if(e.key === 'Enter' && e.target.value) {
