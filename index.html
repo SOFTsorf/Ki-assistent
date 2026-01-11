@@ -69,13 +69,29 @@
         }
         .history-date { font-size: 10px; color: #888; margin-top: 4px; display: block; }
 
-        /* LÖSCHEN BUTTON */
         .delete-all-btn {
-            background: rgba(235, 68, 68, 0.15); color: #eb4444; border: 1px solid rgba(235, 68, 68, 0.3);
+            background: rgba(235, 68, 68, 0.1); color: #eb4444; border: 1px solid rgba(235, 68, 68, 0.2);
             padding: 12px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer;
-            text-align: center; margin-bottom: 20px; transition: background 0.2s;
+            text-align: center; margin-bottom: 20px;
         }
-        .delete-all-btn:active { background: rgba(235, 68, 68, 0.3); }
+
+        /* CUSTOM MODAL POPUP */
+        #custom-modal {
+            position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            width: 85%; max-width: 320px; background: var(--header-bg); backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-glass); border-radius: 24px; padding: 25px; text-align: center;
+            transform: translateY(20px); transition: transform 0.3s;
+        }
+        #custom-modal.show { display: flex; }
+        #custom-modal.show .modal-content { transform: translateY(0); }
+        .modal-title { font-weight: bold; font-size: 18px; margin-bottom: 10px; color: #ff4444; }
+        .modal-text { font-size: 14px; opacity: 0.8; margin-bottom: 20px; line-height: 1.4; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+        .btn-confirm { background: #eb4444; color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: var(--text-main); border: none; padding: 12px; border-radius: 12px; cursor: pointer; }
 
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
@@ -96,39 +112,42 @@
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out; position: relative; }
         .user-container { align-self: flex-end; }
         .ai-container { align-self: flex-start; }
-        
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; position: relative; padding-bottom: 25px; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
-        
         .time-stamp { position: absolute; bottom: 6px; right: 12px; font-size: 9px; opacity: 0.5; }
 
         .footer { 
             position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
             width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 10px; 
         }
-        
         .pill { 
             display: flex; align-items: center; width: 92%; max-width: 650px; 
             background: var(--header-bg); backdrop-filter: var(--glass-blur);
             border-radius: 30px; padding: 6px 15px; border: 1px solid var(--border-glass); 
         }
-        
         input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
-        
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); z-index: 101; }
 
         .icon-top-btn, .icon-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
         .icon-top-btn svg, .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
-
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 8px var(--accent-green)); }
         .green-icon svg { fill: var(--accent-green) !important; }
-        .private-icon svg { fill: #888 !important; }
-
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body onload="initApp()">
+
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div class="modal-title">Verlauf löschen?</div>
+            <div class="modal-text">Alle gespeicherten Chats werden unwiderruflich entfernt. Dieser Vorgang kann nicht rückgängig gemacht werden.</div>
+            <div class="modal-buttons">
+                <button class="btn-confirm" onclick="confirmClear()">Alles löschen</button>
+                <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+            </div>
+        </div>
+    </div>
 
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     <div id="sidebar">
@@ -141,21 +160,17 @@
         </div>
         <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
         <div id="history-list" class="history-list"></div>
-        <div class="delete-all-btn" onclick="clearAllHistory()">Verlauf leeren</div>
+        <div class="delete-all-btn" onclick="openModal()">Verlauf leeren</div>
     </div>
 
     <div class="header-bar">
         <img src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" style="height:38px; border-radius:6px;">
         <div style="display: flex; gap: 5px;">
-            <div class="icon-top-btn" onclick="startNewChat()">
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            </div>
+            <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
             <div class="icon-top-btn" onclick="toggleTheme()" id="theme-btn">
                 <svg id="theme-icon" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
             </div>
-            <div class="icon-top-btn green-icon" id="hamburger-btn" onclick="toggleSidebar()">
-                <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-            </div>
+            <div class="icon-top-btn green-icon" id="hamburger-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
         </div>
     </div>
 
@@ -185,6 +200,16 @@
 
         function initApp() { renderHistory(); startNewChat(); }
 
+        // MODAL FUNCTIONS
+        function openModal() { document.getElementById('custom-modal').classList.add('show'); }
+        function closeModal() { document.getElementById('custom-modal').classList.remove('show'); }
+        function confirmClear() {
+            localStorage.removeItem('nexus_chats');
+            renderHistory();
+            startNewChat();
+            closeModal();
+        }
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             const overlay = document.querySelector('.sidebar-overlay');
@@ -193,8 +218,6 @@
 
         function updatePrivateMode() {
             isPrivateMode = document.getElementById('private-mode-checkbox').checked;
-            const btn = document.getElementById('hamburger-btn');
-            btn.className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
             startNewChat();
         }
 
@@ -204,16 +227,6 @@
             document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
             addBubble("Wie kann ich dir heute helfen?", "ai", false);
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
-        }
-
-        function clearAllHistory() {
-            const confirmDelete = confirm("⚠️ Warnung: Möchtest du wirklich alle alten Chats unwiderruflich löschen?");
-            if (confirmDelete) {
-                localStorage.removeItem('nexus_chats');
-                renderHistory();
-                startNewChat();
-                alert("Verlauf wurde geleert.");
-            }
         }
 
         function addBubble(text, side, animate) {
@@ -264,46 +277,21 @@
             Object.keys(allChats).sort().reverse().forEach(id => {
                 const item = document.createElement('div');
                 item.className = 'history-item';
-                item.innerHTML = `
-                    <div style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${allChats[id].title}</div>
-                    <span class="history-date">${allChats[id].date}</span>
-                `;
-                item.onclick = () => loadChat(id);
+                item.innerHTML = `<div>${allChats[id].title}</div><span class="history-date">${allChats[id].date}</span>`;
+                item.onclick = () => { currentChatId = id; chatHistory = allChats[id].messages; document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>'; chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false); }); toggleSidebar(); };
                 list.appendChild(item);
             });
-        }
-
-        function loadChat(id) {
-            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            if(allChats[id]) {
-                currentChatId = id;
-                chatHistory = allChats[id].messages;
-                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-                chatHistory.forEach(msg => {
-                    if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai', false);
-                });
-                toggleSidebar();
-            }
         }
 
         function toggleMic() { 
             document.getElementById('mic-btn').classList.add('active-green');
             try { recognition.start(); } catch(e) { document.getElementById('mic-btn').classList.remove('active-green'); } 
         }
-        
-        recognition.onresult = (e) => {
-            const t = e.results[0][0].transcript;
-            addBubble(t, "user", true);
-            askAI(t);
-        };
+        recognition.onresult = (e) => { const t = e.results[0][0].transcript; addBubble(t, "user", true); askAI(t); };
         recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
 
         document.getElementById('input-field').onkeypress = (e) => {
-            if(e.key === 'Enter' && e.target.value) {
-                addBubble(e.target.value, "user", true);
-                askAI(e.target.value);
-                e.target.value = "";
-            }
+            if(e.key === 'Enter' && e.target.value) { addBubble(e.target.value, "user", true); askAI(e.target.value); e.target.value = ""; }
         };
 
         function toggleTheme() {
