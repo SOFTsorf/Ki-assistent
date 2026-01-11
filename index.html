@@ -19,51 +19,66 @@
             --bubble-ai: #18191b;
             --text-main: #e8e8e8;
             --border-glass: rgba(255, 255, 255, 0.12);
-            --safe-top: env(safe-area-inset-top);
         }
 
         body {
             margin: 0; background: var(--bg-dark); color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif; overflow: hidden; height: 100vh;
+            font-family: -apple-system, system-ui, sans-serif; 
+            overflow: hidden; height: 100vh;
             display: flex; flex-direction: column;
         }
 
-        /* HEADER - Angepasst an Mobile Notch */
+        /* MOBILE HEADER FIX (Notch-Support) */
         .header-bar {
             position: fixed; top: 0; left: 0; width: 100%; 
-            height: calc(65px + var(--safe-top));
-            background: rgba(11, 11, 12, 0.8); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glass);
-            display: flex; align-items: flex-end; padding: 0 20px 12px 20px; 
+            height: calc(65px + env(safe-area-inset-top));
+            background: rgba(11, 11, 12, 0.8); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); 
+            border-bottom: 1px solid var(--border-glass);
+            display: flex; align-items: flex-end; 
+            padding: 0 20px calc(10px + env(safe-area-inset-top) * 0) 20px; 
             z-index: 1000; box-sizing: border-box;
+            padding-bottom: 15px;
         }
-        .header-bar img { height: 35px; width: auto; border-radius: 6px; cursor: pointer; }
+        .header-bar img { height: 38px; width: auto; border-radius: 8px; cursor: pointer; }
 
         /* CHAT AREA */
         #chat-area {
-            flex: 1; padding: calc(80px + var(--safe-top)) 20px 100px 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            -webkit-overflow-scrolling: touch;
+            flex: 1; 
+            padding: calc(85px + env(safe-area-inset-top)) 20px 100px 20px; 
+            overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+            scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
         }
 
-        .bubble { padding: 14px 18px; border-radius: 18px; max-width: 85%; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
+        .bubble { padding: 14px 20px; border-radius: 18px; max-width: 80%; line-height: 1.6; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); word-wrap: break-word; }
         .user { align-self: flex-end; background: var(--bubble-user); border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        .ai { align-self: flex-start; background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; padding-bottom: 40px; }
 
-        .copyright { text-align: center; font-size: 10px; color: rgba(255, 255, 255, 0.2); margin-top: 20px; width: 100%; order: 9999; }
+        .copyright { text-align: center; font-size: 11px; color: rgba(255, 255, 255, 0.2); padding: 10px 0 40px 0; width: 100%; order: 9999; }
 
-        /* MODALS */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: #1c1c1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 350px; border: 1px solid var(--border-glass); text-align: center; }
-        .admin-input { width: 100%; padding: 12px; margin: 10px 0; background: #2c2c2e; border: 1px solid #444; border-radius: 10px; color: white; font-size: 16px; outline: none; box-sizing: border-box;}
-        .admin-btn { background: var(--accent-green); color: black; border: none; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        /* MODALS (Admin) */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 3000; align-items: center; justify-content: center; }
+        .modal-content { background: #1c1c1e; padding: 30px; border-radius: 24px; width: 85%; max-width: 400px; border: 1px solid var(--border-glass); text-align: center; }
+        .admin-input { width: 100%; padding: 12px; margin: 15px 0; background: #2c2c2e; border: 1px solid #444; border-radius: 12px; color: white; font-size: 16px; box-sizing: border-box; outline: none; }
+        .admin-btn { background: var(--accent-green); color: black; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; }
 
-        /* FOOTER PILL */
-        .footer { position: fixed; bottom: calc(15px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
-        .pill { display: flex; align-items: center; width: 90%; max-width: 600px; background: rgba(35, 35, 37, 0.9); backdrop-filter: blur(20px); border-radius: 25px; padding: 5px 15px; border: 1px solid var(--border-glass); }
+        /* FOOTER PILL (Mobile safe area) */
+        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; justify-content: center; z-index: 100; }
+        .pill { display: flex; align-items: center; width: 92%; max-width: 650px; background: rgba(30, 31, 33, 0.8); backdrop-filter: blur(20px); border-radius: 30px; padding: 6px 18px; border: 1px solid var(--border-glass); }
         input#input-field { flex: 1; background: none; border: none; outline: none; color: white; padding: 12px; font-size: 16px; }
-        .icon-btn svg { fill: #adadad; width: 22px; }
-        .active-green svg { fill: var(--accent-green); filter: drop-shadow(0 0 8px var(--accent-green)); }
+        
+        /* LIVE & OVERLAY */
+        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 60px 0; }
+        .visualizer-ring { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--accent-green); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
+
+        .icon-btn svg { fill: #a0a0a0; width: 22px; cursor: pointer; }
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 10px var(--accent-green)); }
+        
+        /* CODE BOX */
+        .code-container { position: relative; margin: 10px 0; text-align: left; }
+        pre { background: #000 !important; color: #adbac7; padding: 15px; border-radius: 12px; overflow-x: auto; font-size: 13px; border: 1px solid #333; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; cursor: pointer; }
     </style>
 </head>
 <body onload="initApp()">
@@ -77,7 +92,7 @@
     </div>
 
     <div id="chat-area">
-        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir helfen?</div>
+        <div class="bubble ai">NEXUS System bereit. Wie kann ich dir heute helfen?</div>
         <div class="copyright" id="copyright-tag">(c) 2026 - by Patrick Roth</div>
     </div>
 
@@ -89,23 +104,29 @@
         </div>
     </div>
 
+    <div id="live-overlay">
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">NEXUS LIVE</div>
+        <div class="visualizer-ring"></div>
+        <button class="admin-btn" style="background:#eb4444; width: 120px; color:white;" onclick="stopLive()">Stop</button>
+    </div>
+
     <script>
         const API_KEY = "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";
         const ADMIN_CODE = "19012014";
 
         function initApp() {
-            // Sofortige Abfrage für System-Benachrichtigungen
+            // Fragt beim Laden nach echten System-Rechten
             if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
-                    if(permission === "granted") console.log("NEXUS Notifications aktiv.");
-                });
+                Notification.requestPermission();
             }
         }
 
+        // --- ADMIN & ECHTE NOTIFICATIONS ---
         function checkAdmin() {
-            document.getElementById('admin-modal').style.display = 'flex';
+            const m = document.getElementById('admin-modal');
+            m.style.display = 'flex';
             document.getElementById('modal-inner').innerHTML = `
-                <h3 style="color:var(--accent-green)">Admin</h3>
+                <h3 style="color:var(--accent-green)">Admin Login</h3>
                 <input type="password" id="code-entry" class="admin-input" placeholder="Code">
                 <button class="admin-btn" onclick="verifyCode()">Login</button>
                 <p onclick="closeModal()" style="color:#888; font-size:12px; margin-top:15px; cursor:pointer">Schließen</p>`;
@@ -114,77 +135,106 @@
         function verifyCode() {
             if(document.getElementById('code-entry').value === ADMIN_CODE) {
                 document.getElementById('modal-inner').innerHTML = `
-                    <h3 style="color:var(--accent-green)">Broadcast</h3>
-                    <textarea id="broadcast-txt" class="admin-input" rows="3" placeholder="System-Nachricht..."></textarea>
-                    <button class="admin-btn" onclick="sendSystemNotification()">Broadcast senden</button>
+                    <h3 style="color:var(--accent-green)">Echter Broadcast</h3>
+                    <textarea id="broadcast-txt" class="admin-input" rows="3" placeholder="Diese Nachricht erscheint oben am Handy..."></textarea>
+                    <button class="admin-btn" onclick="sendRealPush()">System-Push senden</button>
                     <p onclick="closeModal()" style="color:#888; font-size:12px; margin-top:15px; cursor:pointer">Abbrechen</p>`;
             } else { alert("Falscher Code!"); }
         }
 
-        function sendSystemNotification() {
+        function sendRealPush() {
             const txt = document.getElementById('broadcast-txt').value;
             if(!txt) return;
 
             if (Notification.permission === "granted") {
-                // Das hier ist die ECHTE System-Benachrichtigung (erscheint oben am Handy)
-                new Notification("NEXUS System", {
+                // Das hier triggert die echte Handy-Notification
+                new Notification("NEXUS Broadcast", {
                     body: txt,
-                    icon: "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk",
-                    badge: "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk"
+                    icon: "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk"
                 });
                 closeModal();
             } else {
-                alert("Benachrichtigungen sind blockiert. Bitte in den Einstellungen erlauben.");
+                alert("Bitte erlaube erst Benachrichtigungen im Browser!");
             }
         }
 
         function closeModal() { document.getElementById('admin-modal').style.display = 'none'; }
 
-        // --- Chat & AI Logik ---
-        async function askAI(text) {
+        // --- KI & CHAT LOGIK ---
+        function parseContent(text) {
+            let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            html = html.replace(/```([\s\S]*?)```/g, (m, code) => {
+                const id = 'c' + Math.random().toString(36).substr(2,5);
+                return `<div class="code-container"><button class="copy-btn" onclick="copyCode('${id}')">Copy</button><pre id="${id}">${code.trim()}</pre></div>`;
+            });
+            return html;
+        }
+
+        async function askAI(text, voice) {
             const area = document.getElementById('chat-area');
             const msg = document.createElement('div');
             msg.className = "bubble ai";
-            msg.innerText = "...";
+            msg.innerHTML = "...";
             area.insertBefore(msg, document.getElementById('copyright-tag'));
-            
+            area.scrollTop = area.scrollHeight;
+
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST", headers: { "Authorization": "Bearer "+API_KEY, "Content-Type": "application/json" },
                     body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: [{role: "user", content: text}] })
                 });
                 const data = await res.json();
-                msg.innerText = data.choices[0].message.content;
+                const answer = data.choices[0].message.content;
+                msg.innerHTML = parseContent(answer);
+                if (voice) speak(answer);
             } catch (e) { msg.innerText = "Fehler!"; }
             area.scrollTop = area.scrollHeight;
         }
 
-        document.getElementById('input-field').onkeypress = (e) => {
-            if (e.key === 'Enter' && e.target.value) {
-                const area = document.getElementById('chat-area');
-                const d = document.createElement('div');
-                d.className = "bubble user";
-                d.innerText = e.target.value;
-                area.insertBefore(d, document.getElementById('copyright-tag'));
-                askAI(e.target.value);
-                e.target.value = "";
-                area.scrollTop = area.scrollHeight;
-            }
-        };
+        function copyCode(id) { 
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+        }
 
-        function startMic() {
-            const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Speech) return alert("Browser unterstützt Sprache nicht.");
-            const rec = new Speech();
+        // --- SPRACHE ---
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let rec = Speech ? new Speech() : null;
+        if(rec) {
             rec.lang = 'de-DE';
-            rec.start();
-            document.getElementById('mic-btn').classList.add('active-green');
-            rec.onresult = (e) => {
-                const t = e.results[0][0].transcript;
-                document.getElementById('input-field').value = t;
-                document.getElementById('mic-btn').classList.remove('active-green');
+            rec.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
+            rec.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
+            rec.onresult = (e) => { 
+                const t = e.results[0][0].transcript; 
+                addMsg(t, 'user'); 
+                askAI(t, true); 
             };
         }
+
+        function startLive() { document.getElementById('live-overlay').style.display = 'flex'; rec && rec.start(); }
+        function stopLive() { document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); rec && rec.stop(); }
+        function startMic() { rec && rec.start(); }
+
+        function addMsg(t, s) {
+            const d = document.createElement('div');
+            d.className = `bubble ${s}`;
+            d.innerText = t;
+            document.getElementById('chat-area').insertBefore(d, document.getElementById('copyright-tag'));
+            return d;
+        }
+
+        function speak(t) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'de-DE';
+            u.onend = () => { if(document.getElementById('live-overlay').style.display === 'flex') rec.start(); };
+            window.speechSynthesis.speak(u);
+        }
+
+        document.getElementById('input-field').onkeypress = (e) => {
+            if (e.key === 'Enter' && e.target.value) {
+                addMsg(e.target.value, 'user');
+                askAI(e.target.value, false);
+                e.target.value = "";
+            }
+        };
     </script>
 </body>
-</html>
