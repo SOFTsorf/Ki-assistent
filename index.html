@@ -27,9 +27,10 @@
             --header-bg: rgba(11, 11, 12, 0.8);
             --glass-blur: blur(30px);
             --sidebar-width: 280px;
-            /* Neue Farben für die Search-Bar */
-            --pill-bg: #303134; 
-            --pill-text-blue: #8ab4f8;
+            /* NEU: Farben für die leuchtende Search-Bar im Dark Mode */
+            --pill-bg: #202124; /* Sehr dunkles Grau für den Hintergrund */
+            --pill-text-blue: #8ab4f8; /* Helles Blau für den Platzhalter */
+            --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); /* Blau zu Lila Verlauf */
         }
 
         [data-theme="light"] {
@@ -39,8 +40,10 @@
             --text-main: #1c1c1e;
             --border-glass: rgba(0, 0, 0, 0.08);
             --header-bg: rgba(242, 242, 247, 0.8);
-            --pill-bg: #e3e3e3;
+            /* Anpassung für Light Mode (etwas dezenteres Leuchten) */
+            --pill-bg: #ffffff;
             --pill-text-blue: #4285f4;
+            --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb);
         }
 
         body, html {
@@ -125,16 +128,28 @@
             width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; 
         }
         
-        /* DESIGN UPDATE: PILL / EINGABELEISTE */
+        /* DESIGN UPDATE: GLOWING PILL */
         .pill { 
+            position: relative; /* Wichtig für das Pseudo-Element dahinter */
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            /* Dunkleres, solides Grau wie im Screenshot */
-            background: var(--pill-bg); 
+            background: var(--pill-bg); /* Solider, dunkler Hintergrund */
             border-radius: 30px; padding: 6px 15px; 
-            /* Kein Rahmen mehr, für den cleanen Look */
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: none; /* Kein Rahmen */
+            box-shadow: none; /* Alter Schatten weg */
             margin-bottom: 5px;
+            z-index: 1; /* Sicherstellen, dass der Inhalt vorne ist */
+        }
+
+        /* DAS GLÜHEN (Pseudo-Element hinter der Pill) */
+        .pill::before {
+            content: "";
+            position: absolute;
+            inset: -2px; /* Etwas größer als die Pill selbst */
+            background: var(--glow-gradient); /* Der Farbverlauf */
+            border-radius: 32px; /* Radius anpassen */
+            filter: blur(10px); /* Der Weichzeichner für das Leuchten */
+            z-index: -1; /* Hinter die Pill schieben */
+            opacity: 0.8; /* Stärke des Leuchtens */
         }
         
         input[type="text"] { 
@@ -146,7 +161,7 @@
         /* PLATZHALTER TEXT IN BLAU */
         input[type="text"]::placeholder {
             color: var(--pill-text-blue);
-            opacity: 1; /* Firefox fix */
+            opacity: 1; 
             font-weight: 500;
         }
         
@@ -164,7 +179,7 @@
         .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
         .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .icon-btn svg { fill: #9aa0a6; width: 22px; height: 22px; } /* Symbole etwas heller angepasst */
+        .icon-btn svg { fill: #9aa0a6; width: 22px; height: 22px; } 
 
         .green-icon svg { fill: var(--accent-green) !important; }
         .private-icon svg { fill: #888 !important; }
@@ -230,7 +245,7 @@
     <div class="footer">
         <div class="pill">
             <div class="icon-btn" onclick="startLive()"><svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/></svg></div>
-            <input type="text" id="input-field" placeholder="Nach was suchst du?" autocomplete="off">
+            <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
             <div class="icon-btn" id="mic-btn" onclick="toggleMic()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
         </div>
         <div style="font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; margin-bottom: 2px;">NEXUS AI kann Fehler machen. Prüfe auf Fehler.</div>
@@ -392,4 +407,3 @@
     </script>
 </body>
 </html>
-
