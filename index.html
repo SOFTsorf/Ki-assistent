@@ -102,19 +102,19 @@
         
         #chat-area {
             position: absolute; inset: 0;
-            /* Padding unten angepasst an die neue Layer-Höhe */
-            padding: calc(85px + env(safe-area-inset-top)) 20px 300px 20px; 
+            /* Padding auf 250px reduziert */
+            padding: calc(85px + env(safe-area-inset-top)) 20px 250px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
             box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
         }
 
-        /* BLUR LAYER - HÖHER UND VERSTÄRKT */
+        /* BLUR LAYER - KORRIGIERTE HÖHE */
         .blur-fade-layer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 300px; z-index: 90;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            /* Maske angepasst: 50% deckend, dann Verlauf nach oben */
-            mask-image: linear-gradient(to top, black 50%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to top, black 50%, transparent 100%);
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; z-index: 90;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            /* Übergang startet jetzt etwas später (60%), um unten klarer zu sein */
+            mask-image: linear-gradient(to top, black 60%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to top, black 60%, transparent 100%);
             pointer-events: none;
         }
 
@@ -375,4 +375,3 @@
     </script>
 </body>
 </html>
-
