@@ -27,10 +27,9 @@
             --header-bg: rgba(11, 11, 12, 0.8);
             --glass-blur: blur(30px);
             --sidebar-width: 280px;
-            /* NEU: Farben für die leuchtende Search-Bar im Dark Mode */
-            --pill-bg: #202124; /* Sehr dunkles Grau für den Hintergrund */
-            --pill-text-blue: #8ab4f8; /* Helles Blau für den Platzhalter */
-            --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); /* Blau zu Lila Verlauf */
+            --pill-bg: #202124; 
+            --pill-text-blue: #8ab4f8; 
+            --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); 
         }
 
         [data-theme="light"] {
@@ -40,7 +39,6 @@
             --text-main: #1c1c1e;
             --border-glass: rgba(0, 0, 0, 0.08);
             --header-bg: rgba(242, 242, 247, 0.8);
-            /* Anpassung für Light Mode (etwas dezenteres Leuchten) */
             --pill-bg: #ffffff;
             --pill-text-blue: #4285f4;
             --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb);
@@ -128,28 +126,26 @@
             width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; 
         }
         
-        /* DESIGN UPDATE: GLOWING PILL */
+        /* GLOWING PILL */
         .pill { 
-            position: relative; /* Wichtig für das Pseudo-Element dahinter */
+            position: relative;
             display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--pill-bg); /* Solider, dunkler Hintergrund */
+            background: var(--pill-bg);
             border-radius: 30px; padding: 6px 15px; 
-            border: none; /* Kein Rahmen */
-            box-shadow: none; /* Alter Schatten weg */
+            border: none;
             margin-bottom: 5px;
-            z-index: 1; /* Sicherstellen, dass der Inhalt vorne ist */
+            z-index: 1;
         }
 
-        /* DAS GLÜHEN (Pseudo-Element hinter der Pill) */
         .pill::before {
             content: "";
             position: absolute;
-            inset: -2px; /* Etwas größer als die Pill selbst */
-            background: var(--glow-gradient); /* Der Farbverlauf */
-            border-radius: 32px; /* Radius anpassen */
-            filter: blur(10px); /* Der Weichzeichner für das Leuchten */
-            z-index: -1; /* Hinter die Pill schieben */
-            opacity: 0.8; /* Stärke des Leuchtens */
+            inset: -2px;
+            background: var(--glow-gradient);
+            border-radius: 32px;
+            filter: blur(10px);
+            z-index: -1;
+            opacity: 0.8;
         }
         
         input[type="text"] { 
@@ -158,7 +154,6 @@
             font-weight: 400;
         }
 
-        /* PLATZHALTER TEXT IN BLAU */
         input[type="text"]::placeholder {
             color: var(--pill-text-blue);
             opacity: 1; 
@@ -286,7 +281,6 @@
             overlay.style.display = sb.classList.contains('open') ? 'block' : 'none';
         }
 
-        /* MODAL LOGIC */
         function openModal() {
             const overlay = document.getElementById('custom-modal-overlay');
             overlay.style.display = 'flex';
@@ -351,27 +345,49 @@
         async function askAI(text, useVoice) {
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
-                });
-                const data = await res.json();
-                const ans = data.choices[0].message.content;
-                chatHistory.push({role: "assistant", content: ans});
-                addBubble(ans, "ai");
-                document.getElementById('typing').style.display = 'none';
-                saveToLocalStorage();
-                if(useVoice || isLive) speak(ans);
-            } catch(e) { document.getElementById('typing').style.display = 'none'; }
+
+            // BILD-GENERIERUNG LOGIK
+            const lowerText = text.toLowerCase();
+            const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
+            const isImageRequest = imgKeywords.some(k => lowerText.includes(k));
+
+            if (isImageRequest) {
+                const prompt = encodeURIComponent(text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim());
+                const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${Math.floor(Math.random() * 10000)}`;
+                
+                const imageHtml = `Hier ist dein Bild: <br><br> <img src="${imageUrl}" style="width:100%; border-radius:12px; margin-top:10px;" onload="document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;">`;
+                
+                setTimeout(() => {
+                    addBubble(imageHtml, "ai");
+                    chatHistory.push({role: "assistant", content: "Bild wurde generiert."});
+                    document.getElementById('typing').style.display = 'none';
+                    saveToLocalStorage();
+                }, 1500);
+
+            } else {
+                // TEXT-GENERIERUNG (Groq)
+                try {
+                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: "POST",
+                        headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                        body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                    });
+                    const data = await res.json();
+                    const ans = data.choices[0].message.content;
+                    chatHistory.push({role: "assistant", content: ans});
+                    addBubble(ans, "ai");
+                    document.getElementById('typing').style.none = 'none';
+                    saveToLocalStorage();
+                    if(useVoice || isLive) speak(ans);
+                } catch(e) { document.getElementById('typing').style.display = 'none'; }
+            }
         }
 
         function addBubble(text, side) {
             const area = document.getElementById('chat-area');
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}</div>`;
+            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' && !text.includes('<img') ? marked.parse(text) : text}</div>`;
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
         }
