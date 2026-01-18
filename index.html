@@ -197,36 +197,46 @@ const isImageRequest = imgKeywords.some(k => lowerText.includes(k));
 
 if (isImageRequest) {
     const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
-    
-    // Zufällige Nummer, damit GitHub/Browser nicht aus dem Cache lädt
-    const seed = Math.floor(Math.random() * 999999);
-    
-    // Wir bauen die URL so, dass sie direkt als Bildquelle funktioniert.
-    // Falls du einen Pollinations-Key hast, kannst du ihn hier optional anhängen:
-    // const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed}&width=1024&height=1024&model=flux&key=DEIN_KEY`;
-    
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed}&width=1024&height=1024&nologo=true&model=flux`;
+    const seed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+
+    // Einzigartige ID für diesen Lade-Status, damit mehrere Bilder gleichzeitig laden können
+    const loaderId = "loader-" + seed;
 
     const imageHtml = `
-        <div class="ai-image-wrapper" style="margin-top:10px; position:relative;">
-            <img src="${imageUrl}" 
-                 class="generated-image" 
-                 style="width:100%; border-radius:12px; border: 1px solid var(--accent-green); display:block;"
-                 onload="document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
-                 onerror="this.src='https://via.placeholder.com/1024x1024.png?text=Bild+konnte+nicht+geladen+werden';">
-            <a href="${imageUrl}" target="_blank" style="display:block; color:var(--accent-green); font-size:12px; margin-top:5px; text-decoration:none; text-align:right;">↗ In voller Größe öffnen</a>
-        </div>`;
+        <div class="ai-image-container" style="margin-top:15px; background: rgba(0,0,0,0.2); border-radius:15px; padding:12px; border: 1px solid var(--border-glass); max-width: 260px;">
+            <div id="${loaderId}" style="font-size:13px; color:var(--accent-green); margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                <div style="width:12px; height:12px; border:2px solid var(--accent-green); border-top-color:transparent; border-radius:50%; animation: spin 0.8s linear infinite;"></div>
+                Bild wird generiert...
+            </div>
+            
+            <a href="${imageUrl}" target="_blank" rel="noreferrer">
+                <img src="${imageUrl}" 
+                     class="generated-image" 
+                     style="width:250px; height:250px; object-fit:cover; border-radius:10px; display:block; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);"
+                     onload="document.getElementById('${loaderId}').innerHTML='✅ Fertig gestellt'; document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
+                     onerror="document.getElementById('${loaderId}').innerHTML='⚠️ Fehler beim Laden';">
+            </a>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <span style="font-size:10px; color:grey;">FLUX Engine</span>
+                <a href="${imageUrl}" target="_blank" rel="noreferrer" style="color:var(--accent-green); font-size:11px; text-decoration:none;">Vollbild ↗</a>
+            </div>
+        </div>
+        <style>
+            @keyframes spin { to { transform: rotate(360deg); } }
+        </style>`;
 
     setTimeout(() => {
         addBubble(imageHtml, "ai");
-        // Wir speichern nur den Text im Verlauf, nicht die ganze URL-Struktur (spart Platz)
-        chatHistory.push({role: "assistant", content: `Bild generiert für: ${promptText}`});
+        chatHistory.push({role: "assistant", content: `Bild generiert: ${promptText}`});
         document.getElementById('typing').style.display = 'none';
         saveToLocalStorage();
-    }, 1500);
+    }, 1200);
     
     return;
 }
+            
             // 2. TEXT GENERIERUNG (GROQ)
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
