@@ -199,19 +199,22 @@ if (isImageRequest) {
     const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
     const lowerPrompt = promptText.toLowerCase();
 
-    // --- CONTENT FILTER (Sicherheitsprüfung) ---
+    // --- CONTENT FILTER ---
     const forbiddenWords = ["penis", "sex", "pussy", "nackt", "porn", "hitler", "hakenkreuz", "nsfw"];
     const isInappropriate = forbiddenWords.some(word => lowerPrompt.includes(word));
-
     if (isInappropriate) {
-        addBubble("⚠️ **Sicherheitshinweis:** Deine Anfrage enthält anstößige Begriffe. NEXUS AI generiert keine NSFW-Inhalte oder unangemessene Bilder.", "ai");
+        addBubble("⚠️ **Sicherheitshinweis:** Deine Anfrage enthält anstößige Begriffe. NEXUS AI generiert keine NSFW-Inhalte.", "ai");
         document.getElementById('typing').style.display = 'none';
-        return; // Bricht die Generierung hier ab
+        return;
     }
-    // --------------------------------------------
+    // ----------------------
 
     const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    // Wir fügen den Text und Stil des Wasserzeichens direkt in die URL ein
+    const watermarkText = "NEXUS AI";
+    const watermarkEncoded = encodeURIComponent(watermarkText);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true&text=${watermarkEncoded}&text_color=white&text_position=bottom_right&text_size=16`;
+
     const loaderId = "loader-" + seed;
 
     const imageHtml = `
