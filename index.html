@@ -197,10 +197,21 @@ const isImageRequest = imgKeywords.some(k => lowerText.includes(k));
 
 if (isImageRequest) {
     const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
-    const seed = Math.floor(Math.random() * 1000000);
-    // Wir nutzen die stabile /prompt/ Struktur für GitHub
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+    const lowerPrompt = promptText.toLowerCase();
 
+    // --- CONTENT FILTER (Sicherheitsprüfung) ---
+    const forbiddenWords = ["penis", "sex", "pussy", "nackt", "porn", "hitler", "hakenkreuz", "nsfw"];
+    const isInappropriate = forbiddenWords.some(word => lowerPrompt.includes(word));
+
+    if (isInappropriate) {
+        addBubble("⚠️ **Sicherheitshinweis:** Deine Anfrage enthält anstößige Begriffe. NEXUS AI generiert keine NSFW-Inhalte oder unangemessene Bilder.", "ai");
+        document.getElementById('typing').style.display = 'none';
+        return; // Bricht die Generierung hier ab
+    }
+    // --------------------------------------------
+
+    const seed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
     const loaderId = "loader-" + seed;
 
     const imageHtml = `
