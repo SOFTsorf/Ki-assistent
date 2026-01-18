@@ -225,12 +225,12 @@ if (isImageRequest) {
             <div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000; border: 1px solid rgba(255,255,255,0.05);">
                 <img src="${imageUrl}" 
                      style="width:100%; height:100%; object-fit:cover; display:block;"
-                     onload="document.getElementById('${loaderId}').innerHTML='✅ NEXUS Engine: SD-XL'; document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
+                     onload="document.getElementById('${loaderId}').innerHTML='✓ Generierung abgeschlossen.'; document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
                      onerror="this.src='https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed+1}&model=searchguy';">
             </div>
             
             <div style="display:flex; justify-content:space-between; margin-top:8px; padding:0 2px;">
-                <span style="font-size:9px; color:#666;">UNLIMITIERT</span>
+                <span style="font-size:9px; color:#666;">NEXUS AI</span>
                 <a href="${imageUrl}" target="_blank" rel="noreferrer" style="color:var(--accent-green); font-size:11px; text-decoration:none; font-weight:600;">VOLLBILD ↗</a>
             </div>
         </div>
