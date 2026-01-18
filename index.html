@@ -1,3 +1,6 @@
+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
+
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -18,133 +21,52 @@
 
     <style>
         :root {
-            --accent-green: #00ff88;
-            --bg-dark: #0b0b0c;
-            --bubble-user: #007aff; 
-            --bubble-ai: #18191b;
-            --text-main: #e8e8e8;
-            --border-glass: rgba(255, 255, 255, 0.1);
-            --header-bg: rgba(11, 11, 12, 0.8);
-            --glass-blur: blur(30px);
-            --sidebar-width: 280px;
-            --pill-bg: #202124; 
-            --pill-text-blue: #8ab4f8; 
-            --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0);
+            --accent-green: #00ff88; --bg-dark: #0b0b0c; --bubble-user: #007aff; 
+            --bubble-ai: #18191b; --text-main: #e8e8e8; --border-glass: rgba(255, 255, 255, 0.1);
+            --header-bg: rgba(11, 11, 12, 0.8); --glass-blur: blur(30px); --sidebar-width: 280px;
+            --pill-bg: #202124; --pill-text-blue: #8ab4f8; --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0);
         }
 
         [data-theme="light"] {
-            --bg-dark: #f2f2f7;
-            --bubble-user: #007aff;
-            --bubble-ai: #ffffff;
-            --text-main: #1c1c1e;
-            --border-glass: rgba(0, 0, 0, 0.08);
-            --header-bg: rgba(242, 242, 247, 0.8);
-            --pill-bg: #ffffff;
-            --pill-text-blue: #4285f4;
-            --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb);
+            --bg-dark: #f2f2f7; --bubble-user: #007aff; --bubble-ai: #ffffff;
+            --text-main: #1c1c1e; --border-glass: rgba(0, 0, 0, 0.08); --header-bg: rgba(242, 242, 247, 0.8);
+            --pill-bg: #ffffff; --pill-text-blue: #4285f4; --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb);
         }
 
-        body, html {
-            margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%;
-            overflow: hidden; transition: background 0.3s;
-        }
+        body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; transition: background 0.3s; }
 
         /* SIDEBAR */
-        #sidebar {
-            position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%;
-            background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 20px;
-        }
+        #sidebar { position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%; background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
         #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
-        
-        .private-toggle {
-            margin-top: 60px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass);
-        }
-
+        .private-toggle { margin-top: 60px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); }
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 24px; }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--accent-green); }
         input:checked + .slider:before { transform: translateX(20px); }
-
         .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .history-item { 
-            padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass);
-            font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            color: var(--text-main); transition: opacity 0.2s;
-        }
+        .history-item { padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass); font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); transition: opacity 0.2s; }
         .history-item:active { opacity: 0.7; }
 
         /* MODAL */
-        #custom-modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-            z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;
-        }
-        #custom-modal {
-            background: var(--bubble-ai); border: 1px solid var(--border-glass);
-            padding: 25px; border-radius: 24px; width: 85%; max-width: 320px;
-            text-align: center; transform: scale(0.9); transition: transform 0.3s;
-        }
+        #custom-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        #custom-modal { background: var(--bubble-ai); border: 1px solid var(--border-glass); padding: 25px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; transform: scale(0.9); transition: transform 0.3s; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { 
-            flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; 
-        }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; }
         .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
         .btn-confirm { background: #ff4444; color: white; }
 
-        /* HEADER & CHAT AREA */
-        .header-bar {
-            position: fixed; top: 0; left: 0; width: 100%; 
-            height: calc(65px + env(safe-area-inset-top));
-            background: var(--header-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
-            border-bottom: 1px solid var(--border-glass);
-            display: flex; align-items: flex-end; justify-content: space-between;
-            padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box;
-        }
+        /* HEADER & CHAT */
+        .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
+        #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
         
-        #chat-area {
-            position: absolute; inset: 0;
-            padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-        }
-
-        .blur-fade-layer {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90;
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            mask-image: linear-gradient(to top, black 55%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
-            pointer-events: none;
-        }
-
-        .footer { 
-            position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); 
-            width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; 
-        }
-        
-        .pill { 
-            position: relative;
-            display: flex; align-items: center; width: 92%; max-width: 650px; 
-            background: var(--pill-bg); border-radius: 30px; padding: 6px 15px; 
-            border: none; margin-bottom: 5px; z-index: 1;
-        }
-
-        .pill::before {
-            content: ""; position: absolute; inset: -2px; 
-            background: var(--glow-gradient); border-radius: 32px; filter: blur(10px); 
-            z-index: -1; opacity: 0.8;
-        }
-        
-        input[type="text"] { 
-            flex: 1; background: none; border: none; outline: none; 
-            color: var(--text-main); font-size: 16px; padding: 12px; 
-        }
-
+        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; }
+        .pill { position: relative; display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--pill-bg); border-radius: 30px; padding: 6px 15px; border: none; margin-bottom: 5px; z-index: 1; }
+        .pill::before { content: ""; position: absolute; inset: -2px; background: var(--glow-gradient); border-radius: 32px; filter: blur(10px); z-index: -1; opacity: 0.8; }
+        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         input[type="text"]::placeholder { color: var(--pill-text-blue); opacity: 1; font-weight: 500; }
         
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
@@ -153,26 +75,18 @@
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
 
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
 
-        /* COOKIE BANNER STYLE */
-        #cookie-banner {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%);
-            width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); 
-            border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-        }
+        /* COOKIE BANNER */
+        #cookie-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         #cookie-banner.show { transform: translateX(-50%) translateY(0); }
         .cookie-title { font-weight: bold; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
-        .cookie-text { font-size: 13px; color: #a0a0a0; line-height: 1.5; }
         .cookie-actions { display: flex; gap: 10px; margin-top: 5px; }
-        .cookie-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: transform 0.1s; }
-        .cookie-btn:active { transform: scale(0.96); }
+        .cookie-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
         .btn-essential { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-glass); }
         .btn-accept-all { background: var(--text-main); color: black; }
-        [data-theme="light"] .btn-accept-all { background: #000; color: #fff; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -180,22 +94,13 @@
         .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
         .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .icon-btn svg { fill: #9aa0a6; width: 22px; height: 22px; } 
-
         .green-icon svg { fill: var(--accent-green) !important; }
         .private-icon svg { fill: #888 !important; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
 
-        #live-overlay { 
-            position: fixed; inset: 0; background: #000; z-index: 2000; 
-            display: none; flex-direction: column; align-items: center; 
-            justify-content: space-between; padding: 100px 0 60px 0; 
-        }
+        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 100px 0 60px 0; }
         .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { 
-            position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; 
-            background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); 
-            filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; 
-        }
+        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; }
         @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
@@ -214,13 +119,8 @@
     </div>
 
     <div id="cookie-banner">
-        <div class="cookie-title">
-            <svg viewBox="0 0 24 24" width="20" fill="var(--accent-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-            Datenschutz & Cookies
-        </div>
-        <div class="cookie-text">
-            NEXUS nutzt lokale Speichertechnologien, um dein Chat-Erlebnis zu sichern und Einstellungen zu speichern. Alles bleibt sicher auf deinem Gerät.
-        </div>
+        <div class="cookie-title"><svg viewBox="0 0 24 24" width="20" fill="var(--accent-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>Datenschutz & Cookies</div>
+        <div style="font-size: 13px; color: #a0a0a0; line-height: 1.5;">NEXUS nutzt lokale Speichertechnologien. Deine Chats bleiben auf diesem Gerät.</div>
         <div class="cookie-actions">
             <button class="cookie-btn btn-essential" onclick="handleCookieConsent(false)">Nur Notwendige</button>
             <button class="cookie-btn btn-accept-all" onclick="handleCookieConsent(true)">Akzeptieren</button>
@@ -231,10 +131,7 @@
     <div id="sidebar">
         <div class="private-toggle">
             <span style="font-size: 14px; font-weight: bold;">Privater Chat</span>
-            <label class="switch">
-                <input type="checkbox" id="private-mode-checkbox" onchange="updatePrivateMode()">
-                <span class="slider"></span>
-            </label>
+            <label class="switch"><input type="checkbox" id="private-mode-checkbox" onchange="updatePrivateMode()"><span class="slider"></span></label>
         </div>
         <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
         <div id="history-list" class="history-list"></div>
@@ -273,7 +170,9 @@
     </div>
 
     <script>
-        const API_KEY = "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";
+        // HIER DEINEN NEUEN KEY EINFÜGEN!
+        const API_KEY = "HIER_DEINEN_NEUEN_KEY_EINSETZEN"; 
+        
         let currentChatId = null;
         let chatHistory = [];
         let isLive = false;
@@ -284,61 +183,42 @@
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
 
-        function initApp() { 
-            renderHistory(); 
-            startNewChat(); 
-            initCookieCheck();
-        }
+        function initApp() { renderHistory(); startNewChat(); initCookieCheck(); }
 
         /* COOKIE LOGIC */
         function initCookieCheck() {
             const consent = localStorage.getItem('nexus_cookie_consent');
-            if (!consent) {
-                setTimeout(() => {
-                    document.getElementById('cookie-banner').classList.add('show');
-                }, 1000);
-            }
+            if (!consent) setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
         }
-
         function handleCookieConsent(acceptedAll) {
-            const banner = document.getElementById('cookie-banner');
-            banner.classList.remove('show');
+            document.getElementById('cookie-banner').classList.remove('show');
             localStorage.setItem('nexus_cookie_consent', acceptedAll ? 'full' : 'essential');
         }
 
+        /* UI FUNCTIONS */
         function updatePrivateMode() {
             isPrivateMode = document.getElementById('private-mode-checkbox').checked;
-            const btn = document.getElementById('hamburger-btn');
-            btn.className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
+            document.getElementById('hamburger-btn').className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
             startNewChat();
         }
-
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
-            const overlay = document.querySelector('.sidebar-overlay');
             sb.classList.toggle('open');
-            overlay.style.display = sb.classList.contains('open') ? 'block' : 'none';
+            document.querySelector('.sidebar-overlay').style.display = sb.classList.contains('open') ? 'block' : 'none';
         }
-
         function openModal() {
-            const overlay = document.getElementById('custom-modal-overlay');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.opacity = '1'; document.getElementById('custom-modal').style.transform = 'scale(1)'; }, 10);
+            document.getElementById('custom-modal-overlay').style.display = 'flex';
+            setTimeout(() => { document.getElementById('custom-modal-overlay').style.opacity = '1'; document.getElementById('custom-modal').style.transform = 'scale(1)'; }, 10);
         }
         function closeModal() {
-            const overlay = document.getElementById('custom-modal-overlay');
-            overlay.style.opacity = '0';
+            document.getElementById('custom-modal-overlay').style.opacity = '0';
             document.getElementById('custom-modal').style.transform = 'scale(0.9)';
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+            setTimeout(() => document.getElementById('custom-modal-overlay').style.display = 'none', 300);
         }
-        function executeClearHistory() {
-            localStorage.removeItem('nexus_chats');
-            renderHistory();
-            startNewChat();
-            closeModal();
-            toggleSidebar();
-        }
+        function executeClearHistory() { localStorage.removeItem('nexus_chats'); renderHistory(); startNewChat(); closeModal(); toggleSidebar(); }
+        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
 
+        /* CORE CHAT LOGIC */
         function startNewChat() {
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
@@ -347,6 +227,67 @@
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
+        async function askAI(text, useVoice) {
+            document.getElementById('typing').style.display = 'block';
+            chatHistory.push({role: "user", content: text});
+
+            // 1. CHECK BILD GENERIERUNG
+            const lowerText = text.toLowerCase();
+            const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
+            const isImageRequest = imgKeywords.some(k => lowerText.includes(k));
+
+            if (isImageRequest) {
+                const prompt = encodeURIComponent(text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim());
+                const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${Math.floor(Math.random() * 10000)}`;
+                const imageHtml = `Hier ist dein Bild: <br><br> <img src="${imageUrl}" class="generated-image" onload="document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;">`;
+                
+                setTimeout(() => {
+                    addBubble(imageHtml, "ai");
+                    chatHistory.push({role: "assistant", content: imageHtml}); 
+                    document.getElementById('typing').style.display = 'none';
+                    saveToLocalStorage();
+                }, 1500);
+                return;
+            }
+
+            // 2. TEXT GENERIERUNG (GROQ)
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error?.message || "Fehlercode: " + res.status);
+                }
+
+                const data = await res.json();
+                const ans = data.choices[0].message.content;
+                chatHistory.push({role: "assistant", content: ans});
+                addBubble(ans, "ai");
+                document.getElementById('typing').style.display = 'none';
+                saveToLocalStorage();
+                if(useVoice || isLive) speak(ans);
+
+            } catch(e) { 
+                document.getElementById('typing').style.display = 'none'; 
+                addBubble("⚠️ Fehler: " + e.message + " (Bitte prüfe den API Key)", "ai");
+            }
+        }
+
+        function addBubble(text, side) {
+            const area = document.getElementById('chat-area');
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${side}-container`;
+            const content = text.includes('<img') ? text : (side === 'ai' ? marked.parse(text) : text);
+            cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
+            area.insertBefore(cont, document.getElementById('typing'));
+            area.scrollTop = area.scrollHeight;
+        }
+
+        /* STORAGE */
         function saveToLocalStorage() {
             if (isPrivateMode || chatHistory.length <= 1) return;
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
@@ -371,9 +312,7 @@
         function loadChat(id) {
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             if(allChats[id]) {
-                isPrivateMode = false;
-                document.getElementById('private-mode-checkbox').checked = false;
-                updatePrivateMode();
+                isPrivateMode = false; document.getElementById('private-mode-checkbox').checked = false; updatePrivateMode();
                 currentChatId = id; chatHistory = allChats[id].messages;
                 document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
                 chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai'); });
@@ -381,41 +320,13 @@
             }
         }
 
-        async function askAI(text, useVoice) {
-            document.getElementById('typing').style.display = 'block';
-            chatHistory.push({role: "user", content: text});
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
-                });
-                const data = await res.json();
-                const ans = data.choices[0].message.content;
-                chatHistory.push({role: "assistant", content: ans});
-                addBubble(ans, "ai");
-                document.getElementById('typing').style.display = 'none';
-                saveToLocalStorage();
-                if(useVoice || isLive) speak(ans);
-            } catch(e) { document.getElementById('typing').style.display = 'none'; }
-        }
-
-        function addBubble(text, side) {
-            const area = document.getElementById('chat-area');
-            const cont = document.createElement('div');
-            cont.className = `bubble-container ${side}-container`;
-            cont.innerHTML = `<div class="bubble ${side}">${side === 'ai' ? marked.parse(text) : text}</div>`;
-            area.insertBefore(cont, document.getElementById('typing'));
-            area.scrollTop = area.scrollHeight;
-        }
-
+        /* VOICE */
         function speak(t) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE';
             u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} };
             window.speechSynthesis.speak(u);
         }
-
         function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
         recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
         recognition.onend = () => {
@@ -426,21 +337,12 @@
             const t = e.results[0][0].transcript;
             addBubble(t, "user"); askAI(t, isVoiceActive); isVoiceActive = false;
         };
-
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
 
         document.getElementById('input-field').onkeypress = (e) => {
-            if(e.key === 'Enter' && e.target.value) {
-                addBubble(e.target.value, "user"); askAI(e.target.value, false); e.target.value = "";
-            }
+            if(e.key === 'Enter' && e.target.value) { addBubble(e.target.value, "user"); askAI(e.target.value, false); e.target.value = ""; }
         };
-
-        function toggleTheme() { 
-            document.documentElement.hasAttribute('data-theme') ? 
-            document.documentElement.removeAttribute('data-theme') : 
-            document.documentElement.setAttribute('data-theme', 'light'); 
-        }
     </script>
 </body>
 </html>
