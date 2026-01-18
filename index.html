@@ -197,7 +197,7 @@
             if (isImageRequest) {
                 const prompt = encodeURIComponent(text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim());
                 const imageUrl = `https://pollinations.ai/p/${prompt}?width=1024&height=1024&seed=${Math.floor(Math.random() * 10000)}`;
-                const imageHtml = `Hier ist dein Bild: <br><br> <img src="${imageUrl}" class="generated-image" onload="document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;">`;
+                const imageHtml = `Bildgenerierung wird bald verfügbar sein. <br><br> <img src="${imageUrl}" class="generated-image" onload="document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;">`;
                 
                 setTimeout(() => {
                     addBubble(imageHtml, "ai");
@@ -231,7 +231,7 @@
 
             } catch(e) { 
                 document.getElementById('typing').style.display = 'none'; 
-                addBubble("⚠️ Fehler: " + e.message + " (Checke den Key in GitHub Actions)", "ai");
+                addBubble("⚠️ Fehler: " + e.message + " (Bitte melde dem Besitzer der Webseite den Fehler!)", "ai");
             }
         }
 
