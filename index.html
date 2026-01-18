@@ -212,7 +212,7 @@ if (isImageRequest) {
     // HUGGING FACE / POLLINATIONS HYBRID (Stabilste kostenlose Methode)
     // Wir nutzen hier das Stable-Diffusion-Modell über das Pollinations-Gateway, 
     // da dies am besten mit Wasserzeichen und ohne Key-Zwang funktioniert.
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=searchguy&nologo=true&text=${watermark}&text_color=white&text_position=bottom_right`;
+    const imageUrl = `https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=searchguy&nologo=true&text=${watermark}&text_color=white&text_position=bottom_right`;
 
     const loaderId = "loader-" + seed;
 
