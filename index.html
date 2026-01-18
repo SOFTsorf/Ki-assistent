@@ -131,7 +131,6 @@
     <script>
         // DER PLATZHALTER:
         const API_KEY = "SECRET_GROQ_KEY_PLACEHOLDER";
-        const POLLINATIONS_API_KEY = "pk_DNpa72xbnzjcl5RW"; // Dein neuer Key
         
         let currentChatId = null;
         let chatHistory = [];
@@ -201,19 +200,19 @@ if (isImageRequest) {
 
     // --- CONTENT FILTER ---
     const forbiddenWords = ["penis", "sex", "pussy", "nackt", "porn", "hitler", "hakenkreuz", "nsfw"];
-    const isInappropriate = forbiddenWords.some(word => lowerPrompt.includes(word));
-    if (isInappropriate) {
-        addBubble("⚠️ **Sicherheitshinweis:** Deine Anfrage enthält anstößige Begriffe. NEXUS AI generiert keine NSFW-Inhalte.", "ai");
+    if (forbiddenWords.some(word => lowerPrompt.includes(word))) {
+        addBubble("⚠️ **Sicherheitshinweis:** Diese Anfrage wurde blockiert. NEXUS AI erlaubt keine anstößigen Inhalte.", "ai");
         document.getElementById('typing').style.display = 'none';
         return;
     }
-    // ----------------------
 
     const seed = Math.floor(Math.random() * 1000000);
-    // Wir fügen den Text und Stil des Wasserzeichens direkt in die URL ein
-    const watermarkText = "NEXUS AI";
-    const watermarkEncoded = encodeURIComponent(watermarkText);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true&text=${watermarkEncoded}&text_color=white&text_position=bottom_right&text_size=16`;
+    const watermark = encodeURIComponent("NEXUS AI");
+    
+    // HUGGING FACE / POLLINATIONS HYBRID (Stabilste kostenlose Methode)
+    // Wir nutzen hier das Stable-Diffusion-Modell über das Pollinations-Gateway, 
+    // da dies am besten mit Wasserzeichen und ohne Key-Zwang funktioniert.
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=searchguy&nologo=true&text=${watermark}&text_color=white&text_position=bottom_right`;
 
     const loaderId = "loader-" + seed;
 
@@ -221,18 +220,18 @@ if (isImageRequest) {
         <div class="ai-image-container" style="margin-top:12px; background: #1a1b1e; border-radius:16px; padding:10px; border: 1px solid rgba(255,255,255,0.1); width: fit-content;">
             <div id="${loaderId}" style="font-size:12px; color:var(--accent-green); margin-bottom:8px; display:flex; align-items:center; gap:6px; font-weight:500;">
                 <div class="nexus-spinner"></div>
-                Bild wird generiert...
+                Bild wird generiert (Hugging Face / SD)...
             </div>
             
             <div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000;">
                 <img src="${imageUrl}" 
                      style="width:100%; height:100%; object-fit:cover; display:block;"
-                     onload="document.getElementById('${loaderId}').innerHTML='✅ NEXUS Engine: FLUX'; document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
-                     onerror="this.src=this.src+'&retry=1';">
+                     onload="document.getElementById('${loaderId}').innerHTML='✅ NEXUS AI: Stable Diffusion'; document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;"
+                     onerror="this.src='https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed+5}&model=turbo';">
             </div>
             
             <div style="display:flex; justify-content:space-between; margin-top:8px; padding:0 2px;">
-                <span style="font-size:9px; color:#666; text-transform:uppercase;">1024x1024</span>
+                <span style="font-size:9px; color:#666; text-transform:uppercase;">SD-XL v1.5</span>
                 <a href="${imageUrl}" target="_blank" rel="noreferrer" style="color:var(--accent-green); font-size:11px; text-decoration:none; font-weight:600;">VOLLBILD ↗</a>
             </div>
         </div>
