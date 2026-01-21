@@ -15,63 +15,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-
-        #pong-overlay { 
-    position: fixed; 
-    inset: 0; 
-    background: rgba(0,0,0,0.3); 
-    backdrop-filter: blur(40px); 
-    -webkit-backdrop-filter: blur(40px); 
-    z-index: 6000; 
-    display: none; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-    overflow: hidden; 
-    touch-action: none; 
-}
-#pong-score { 
-    position: absolute; 
-    top: 15vh; 
-    font-size: 100px; 
-    font-weight: 900; 
-    opacity: 0.1; 
-    color: var(--text-main); 
-    pointer-events: none; 
-}
-#pong-ball { 
-    position: absolute; 
-    font-size: 40px; 
-    pointer-events: none; 
-    will-change: top, left; 
-}
-#pong-paddle { 
-    position: absolute; 
-    bottom: 15vh; 
-    width: 100px; 
-    height: 12px; 
-    background: var(--accent-green); 
-    border-radius: 20px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    box-shadow: 0 0 20px var(--accent-green); 
-}
-.close-pong { 
-    position: absolute; 
-    top: 50px; 
-    right: 20px; 
-    background: rgba(255,255,255,0.1); 
-    border: none; 
-    color: white; 
-    width: 40px; 
-    height: 40px; 
-    border-radius: 50%; 
-    font-size: 20px; 
-    z-index: 6001; 
-}
-
-
-        
         :root { --accent-green: #00ff88; --bg-dark: #0b0b0c; --bubble-user: #007aff; --bubble-ai: #18191b; --text-main: #e8e8e8; --border-glass: rgba(255, 255, 255, 0.1); --header-bg: rgba(11, 11, 12, 0.8); --glass-blur: blur(30px); --sidebar-width: 280px; --pill-bg: #202124; --pill-text-blue: #8ab4f8; --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); }
         [data-theme="light"] { --bg-dark: #f2f2f7; --bubble-user: #007aff; --bubble-ai: #ffffff; --text-main: #1c1c1e; --border-glass: rgba(0, 0, 0, 0.08); --header-bg: rgba(242, 242, 247, 0.8); --pill-bg: #ffffff; --pill-text-blue: #4285f4; --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb); }
         body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; transition: background 0.3s; }
@@ -155,14 +98,6 @@
 </head>
 <body onload="initApp()">
 
-    <div id="pong-overlay">
-    <button class="close-pong" onclick="closePong()">✕</button>
-    <div id="pong-score">0</div>
-    <div id="pong-ball">⚽</div>
-    <div id="pong-paddle"></div>
-</div>
-
-
     <div id="custom-modal-overlay">
         <div id="custom-modal">
             <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Verlauf löschen?</div>
@@ -244,70 +179,6 @@
     </div>
 
     <script>
-
-
-
-
-        let pongActive = false;
-let score = 0;
-let ball = { x: 50, y: 50, dx: 0.8, dy: 0.8 };
-let paddlePos = 50;
-
-function startPong(emoji) {
-    pongActive = true;
-    score = 0;
-    document.getElementById('pong-score').innerText = "0";
-    document.getElementById('pong-ball').innerText = emoji;
-    document.getElementById('pong-overlay').style.display = 'flex';
-    ball = { x: 50, y: 20, dx: 0.7, dy: 0.7 };
-    updatePong();
-}
-
-function updatePong() {
-    if (!pongActive) return;
-    ball.x += ball.dx; ball.y += ball.dy;
-    if (ball.x <= 5 || ball.x >= 95) ball.dx *= -1;
-    if (ball.y <= 5) ball.dy *= -1;
-    if (ball.y >= 82 && ball.y <= 85 && ball.x >= (paddlePos - 15) && ball.x <= (paddlePos + 15)) {
-        ball.dy *= -1.05; ball.y = 81.9;
-        score++;
-        document.getElementById('pong-score').innerText = score;
-    }
-    if (ball.y > 98) { closePong(); return; }
-    document.getElementById('pong-ball').style.left = ball.x + "vw";
-    document.getElementById('pong-ball').style.top = ball.y + "vh";
-    requestAnimationFrame(updatePong);
-}
-
-function closePong() { 
-    pongActive = false; 
-    document.getElementById('pong-overlay').style.display = 'none'; 
-}
-
-// Steuerung
-window.addEventListener('mousemove', (e) => { 
-    if(pongActive) paddlePos = (e.clientX / window.innerWidth) * 100; 
-    document.getElementById('pong-paddle').style.left = paddlePos + "vw";
-});
-window.addEventListener('touchmove', (e) => { 
-    if(pongActive) paddlePos = (e.touches[0].clientX / window.innerWidth) * 100; 
-    document.getElementById('pong-paddle').style.left = paddlePos + "vw";
-});
-
-// Trigger für Bubbles
-function checkForEmoji(el) {
-    // Diese Zeile sucht nach dem ersten Emoji im Text der Nachricht
-    const match = el.innerText.match(/\p{Emoji}/u);
-    if (match) {
-        console.log("Emoji gefunden:", match[0]); // Test für die Konsole
-        startPong(match[0]);
-    } else {
-        console.log("Kein Emoji in dieser Nachricht gefunden.");
-    }
-}
-
-}
-
         // ============================================
         // 1. DEINE SCHLÜSSEL HIER EINFÜGEN
         // ============================================
@@ -549,8 +420,6 @@ const firebaseConfig = {
             cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
-
-            onclick="checkForEmoji(this)"
         }
 
         function renderHistory() {
