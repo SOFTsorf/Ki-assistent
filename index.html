@@ -541,6 +541,8 @@ const firebaseConfig = {
             cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
+
+            onclick="checkForEmoji(this)"
         }
 
         function renderHistory() {
