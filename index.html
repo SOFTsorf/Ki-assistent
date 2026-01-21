@@ -19,6 +19,7 @@
     <style>
         :root { --accent-green: #00ff88; --bg-dark: #0b0b0c; --bubble-user: #007aff; --bubble-ai: #18191b; --text-main: #e8e8e8; --border-glass: rgba(255, 255, 255, 0.1); --header-bg: rgba(11, 11, 12, 0.8); --glass-blur: blur(30px); --sidebar-width: 280px; --pill-bg: #202124; --pill-text-blue: #8ab4f8; --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); }
         [data-theme="light"] { --bg-dark: #f2f2f7; --bubble-user: #007aff; --bubble-ai: #ffffff; --text-main: #1c1c1e; --border-glass: rgba(0, 0, 0, 0.08); --header-bg: rgba(242, 242, 247, 0.8); --pill-bg: #ffffff; --pill-text-blue: #4285f4; --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb); }
+        
         body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; transition: background 0.3s; }
         
         /* SIDEBAR */
@@ -26,13 +27,11 @@
         #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
         .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
         
-        /* HEADER & CHAT */
+        /* HEADER */
         .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
+        
+        /* CHAT AREA */
         #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; }
-        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; }
-        .pill { position: relative; display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--pill-bg); border-radius: 30px; padding: 6px 15px; z-index: 1; }
-        .pill::before { content: ""; position: absolute; inset: -2px; background: var(--glow-gradient); border-radius: 32px; filter: blur(10px); z-index: -1; opacity: 0.8; }
-        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
         
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
         .user-container { align-self: flex-end; }
@@ -41,20 +40,30 @@
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
 
-        /* PING PONG GAME OVERLAY */
+        /* FOOTER & PILL */
+        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; }
+        .pill { position: relative; display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--pill-bg); border-radius: 30px; padding: 6px 15px; z-index: 1; }
+        .pill::before { content: ""; position: absolute; inset: -2px; background: var(--glow-gradient); border-radius: 32px; filter: blur(10px); z-index: -1; opacity: 0.8; }
+        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
+
+        /* PONG OVERLAY */
         #pong-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
         #pong-score { position: absolute; top: 15vh; font-size: 100px; font-weight: 900; opacity: 0.1; color: var(--text-main); pointer-events: none; }
-        #pong-ball { position: absolute; font-size: 40px; pointer-events: none; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-        #pong-paddle { position: absolute; bottom: 15vh; width: 100px; height: 12px; background: var(--accent-green); border-radius: 20px; box-shadow: 0 0 20px var(--accent-green); left: 50%; transform: translateX(-50%); }
-        .close-pong { position: absolute; top: 50px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 6001; }
+        #pong-ball { position: absolute; font-size: 40px; pointer-events: none; }
+        #pong-paddle { position: absolute; bottom: 15vh; width: 100px; height: 12px; background: var(--accent-green); border-radius: 20px; left: 50%; transform: translateX(-50%); box-shadow: 0 0 20px var(--accent-green); }
+        .close-pong { position: absolute; top: 50px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; }
 
-        /* ICONS & UI */
         .icon-top-btn, .icon-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
         .icon-top-btn svg, .icon-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
         .green-icon svg { fill: var(--accent-green) !important; }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
         
-        /* ANIMATION */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -70,7 +79,7 @@
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     
     <div id="sidebar">
-        <div id="user-profile-section" style="padding-bottom: 20px; border-bottom: 1px solid var(--border-glass); text-align: center;">
+        <div id="user-profile-section" style="text-align:center; padding-bottom:20px; border-bottom:1px solid var(--border-glass);">
             <div id="logged-out-view">
                 <button onclick="loginWithGoogle()" style="width:100%; padding:12px; border-radius:12px; background:var(--text-main); color:var(--bg-dark); border:none; font-weight:bold; cursor:pointer;">Google Login</button>
             </div>
@@ -80,17 +89,20 @@
                 <button onclick="logout()" style="color:#ff4444; background:none; border:none; cursor:pointer;">Abmelden</button>
             </div>
         </div>
-        <div id="history-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
-        <div style="font-size: 12px; color: grey;">Version 26.64.23</div>
-        <button onclick="clearHistory()" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
+        <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px;">Privater Modus</span>
+            <label class="switch"><input type="checkbox" id="private-mode-checkbox" onchange="updatePrivateMode()"><span class="slider"></span></label>
+        </div>
+        <div id="history-list" style="flex:1; overflow-y:auto; margin-top:20px; display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="font-size:10px; opacity:0.3; text-align:center; margin-bottom:10px;">v26.64.23</div>
+        <button onclick="clearHistory()" style="background:none; border:1px solid rgba(255,0,0,0.2); color:#ff4444; padding:10px; border-radius:10px; cursor:pointer;">Verlauf löschen</button>
     </div>
 
     <div class="header-bar">
-        <img id="header-avatar" src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" onclick="toggleSidebar()" style="height:38px; border-radius:50%; cursor: pointer;">
-        <div style="display: flex; gap: 5px;">
+        <img id="header-avatar" src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" onclick="toggleSidebar()" style="height:38px; border-radius:50%; cursor:pointer;">
+        <div style="display:flex; gap:10px;">
             <div class="icon-top-btn" id="admin-btn" style="display:none;"><svg viewBox="0 0 24 24" style="fill:#ff9900;"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11h-14zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg></div>
             <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
-            <div class="icon-top-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/></svg></div>
             <div class="icon-top-btn green-icon" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
         </div>
     </div>
@@ -99,42 +111,38 @@
 
     <div class="footer">
         <div class="pill">
-            <div class="icon-btn" onclick="startLive()"><svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/></svg></div>
+            <div class="icon-btn" onclick="alert('Live-Modus')"><svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/></svg></div>
             <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn" onclick="toggleMic()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg></div>
+            <div class="icon-btn" onclick="alert('Mikrofon')"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg></div>
         </div>
         <div style="font-size: 10px; color: rgba(128, 128, 128, 0.4);">© 2026 - by Patrick Roth</div>
     </div>
 
     <script>
-        const API_KEY = "SECRET_GROQ_KEY_PLACEHOLDER";
-        let chatHistory = [];
+        const firebaseConfig = { apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0", authDomain: "nexusanmeldung.firebaseapp.com", projectId: "nexusanmeldung", storageBucket: "nexusanmeldung.firebasestorage.app", messagingSenderId: "1009526597247", appId: "1:1009526597247:web:af26faf977a42a2cf2014a" };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
         let pongActive = false;
         let ball = { x: 50, y: 50, dx: 0.8, dy: 0.8 };
         let paddlePos = 50;
 
-        function initApp() { startNewChat(); }
-
-        function startNewChat() {
-            chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
-            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>';
-            addBubble("Willkommen zurück! Tippe auf ein Emoji, um Ping-Pong zu spielen. 🏓", "ai");
-        }
-
-        async function askAI(text) {
-            document.getElementById('typing').style.display = 'block';
-            chatHistory.push({role: "user", content: text});
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST", headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
-                });
-                const data = await res.json();
-                const ans = data.choices[0].message.content;
-                chatHistory.push({role: "assistant", content: ans});
-                addBubble(ans, "ai");
-            } catch(e) { addBubble("⚠️ Fehler beim Abrufen der Antwort.", "ai"); }
-            document.getElementById('typing').style.display = 'none';
+        function initApp() {
+            auth.onAuthStateChanged(user => {
+                currentUser = user;
+                if(user) {
+                    document.getElementById('logged-in-view').style.display = 'flex';
+                    document.getElementById('logged-out-view').style.display = 'none';
+                    document.getElementById('sidebar-avatar').src = user.photoURL;
+                    document.getElementById('header-avatar').src = user.photoURL;
+                    document.getElementById('sidebar-username').innerText = user.displayName;
+                    if(user.email === "p.roth.privat@gmail.com") document.getElementById('admin-btn').style.display = "flex";
+                }
+                startNewChat();
+            });
         }
 
         function addBubble(text, side) {
@@ -177,29 +185,25 @@
 
         function closePong() { pongActive = false; document.getElementById('pong-overlay').style.display = 'none'; }
 
-        window.addEventListener('mousemove', (e) => {
-            if(pongActive) {
-                paddlePos = (e.clientX / window.innerWidth) * 100;
-                document.getElementById('pong-paddle').style.left = paddlePos + "vw";
-            }
-        });
-        window.addEventListener('touchmove', (e) => {
-            if(pongActive) {
-                paddlePos = (e.touches[0].clientX / window.innerWidth) * 100;
-                document.getElementById('pong-paddle').style.left = paddlePos + "vw";
-            }
-        });
+        window.addEventListener('mousemove', (e) => { if(pongActive) paddlePos = (e.clientX/window.innerWidth)*100; document.getElementById('pong-paddle').style.left = paddlePos+"vw"; });
+        window.addEventListener('touchmove', (e) => { if(pongActive) paddlePos = (e.touches[0].clientX/window.innerWidth)*100; document.getElementById('pong-paddle').style.left = paddlePos+"vw"; });
 
-        // PLACEHOLDER FOR REMOVED BUTTONS (to keep code running)
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function loginWithGoogle() { alert("Login gestartet..."); }
-        function logout() { location.reload(); }
+        function startNewChat() {
+            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>';
+            addBubble("Willkommen zurück! Wie kann ich dir heute helfen? 🏓", "ai");
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.querySelector('.sidebar-overlay').style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none'; }
+        function loginWithGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+        function logout() { auth.signOut().then(() => location.reload()); }
         function clearHistory() { startNewChat(); }
-        function toggleTheme() { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'light' ? '' : 'light'); }
-        function toggleMic() { alert("Mikrofon aktiviert..."); }
-        function startLive() { alert("Live Modus gestartet..."); }
-
-        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter' && e.target.value) { addBubble(e.target.value, "user"); askAI(e.target.value); e.target.value = ""; } };
+        
+        document.getElementById('input-field').onkeypress = (e) => { 
+            if(e.key === 'Enter' && e.target.value) { 
+                addBubble(e.target.value, "user"); 
+                e.target.value = ""; 
+            } 
+        };
     </script>
 </body>
 </html>
