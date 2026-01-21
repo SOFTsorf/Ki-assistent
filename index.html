@@ -296,8 +296,16 @@ window.addEventListener('touchmove', (e) => {
 
 // Trigger für Bubbles
 function checkForEmoji(el) {
+    // Diese Zeile sucht nach dem ersten Emoji im Text der Nachricht
     const match = el.innerText.match(/\p{Emoji}/u);
-    if (match) startPong(match[0]);
+    if (match) {
+        console.log("Emoji gefunden:", match[0]); // Test für die Konsole
+        startPong(match[0]);
+    } else {
+        console.log("Kein Emoji in dieser Nachricht gefunden.");
+    }
+}
+
 }
 
         // ============================================
