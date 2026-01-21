@@ -262,103 +262,77 @@
         // DASHBOARD & ADMIN LOGIC
         // ============================================
 
-        async function renderDashboard() {
-            const chatArea = document.getElementById('chat-area');
-            const firstName = currentUser ? currentUser.displayName.split(' ')[0] : "Gast";
-            
-            // 1. Hole Admin Nachricht
-            let adminMessageHtml = "";
-            try {
-                const doc = await db.collection('settings').doc('broadcast').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const now = Date.now();
-                    // Zeige nur wenn aktiv und nicht abgelaufen
-                    if (data.isActive && (data.expiresAt > now || data.expiresAt === -1)) {
-                        adminMessageHtml = `
-                        <div class="admin-banner">
-                            <div class="admin-icon-circle">i</div>
-                            <div class="admin-text">${marked.parse(data.message)}</div>
-                        </div>`;
-                    }
-                }
-            } catch(e) { console.log("Keine Admin-Nachricht oder Offline"); }
+       // KORRIGIERTE DASHBOARD FUNKTION
+async function renderDashboard() {
+    const chatArea = document.getElementById('chat-area');
+    const firstName = currentUser ? currentUser.displayName.split(' ')[0] : "Gast";
+    
+    let adminMessageHtml = "";
+    try {
+        const doc = await db.collection('settings').doc('broadcast').get();
+        if (doc.exists) {
+            const data = doc.data();
+            const now = Date.now();
+            if (data.isActive && (data.expiresAt > now || data.expiresAt === -1)) {
+                adminMessageHtml = `
+                <div class="admin-banner">
+                    <div class="admin-icon-circle">i</div>
+                    <div class="admin-text">${marked.parse(data.message)}</div>
+                </div>`;
+            }
+        }
+    } catch(e) { console.log("Dashboard Info offline"); }
 
-            // 2. Erstelle Dashboard HTML
-            const dashHtml = `
-            <div class="dashboard-container">
-                <div class="dash-greeting">
-                    ${currentUser ? `Hallo, ${firstName}` : "Willkommen bei NEXUS"}
-                </div>
-                
-                <div class="dash-section-title">
-                    <svg style="width:16px; height:16px; fill:#a0a0a0;" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                    Trends
-                </div>
-                
-                <div class="dash-grid">
-                    <div class="dash-card" onclick="askTrigger('Generiere ein Bild von einer futuristischen Stadt')">
-                        <div class="dash-card-icon">🎨</div>
-                        <div class="dash-card-text">Bild generieren</div>
-                    </div>
-                    <div class="dash-card" onclick="askTrigger('Erzähl mir einen lustigen Witz')">
-                        <div class="dash-card-icon">😂</div>
-                        <div class="dash-card-text">Witz erzählen</div>
-                    </div>
-                    <div class="dash-card" onclick="askTrigger('Was sind einfache Rezepte für heute Abend?')">
-                        <div class="dash-card-icon">🍳</div>
-                        <div class="dash-card-text">Rezept Idee</div>
-                    </div>
-                    <div class="dash-card" onclick="askTrigger('Erkläre Quantenphysik einfach')">
-                        <div class="dash-card-icon">🧠</div>
-                        <div class="dash-card-text">Wissen</div>
-                    </div>
-                </div>
-
-                ${adminMessageHtml}
+    const dashHtml = `
+    <div id="dashboard" class="dashboard-container">
+        <div class="dash-greeting">${currentUser ? `Hallo, ${firstName}` : "Willkommen"}</div>
+        <div class="dash-section-title">Trends</div>
+        <div class="dash-grid">
+            <div class="dash-card" onclick="askTrigger('Generiere ein Bild von einer futuristischen Stadt')">
+                <div class="dash-card-icon">🎨</div><div class="dash-card-text">Bild generieren</div>
             </div>
-            `;
-            
-            chatArea.innerHTML = dashHtml;
-            chatArea.appendChild(document.getElementById('typing')); // Typing Indicator behalten
-        }
+            <div class="dash-card" onclick="askTrigger('Erzähl mir einen Witz')">
+                <div class="dash-card-icon">😂</div><div class="dash-card-text">Witz erzählen</div>
+            </div>
+            <div class="dash-card" onclick="askTrigger('Was soll ich heute kochen?')">
+                <div class="dash-card-icon">🍳</div><div class="dash-card-text">Rezept Idee</div>
+            </div>
+            <div class="dash-card" onclick="askTrigger('Erkläre Quantenphysik einfach')">
+                <div class="dash-card-icon">🧠</div><div class="dash-card-text">Wissen</div>
+            </div>
+        </div>
+        ${adminMessageHtml}
+    </div>`;
+    
+    // WICHTIG: Wir leeren nicht alles, sondern setzen das Dashboard VOR das Typing-Element
+    chatArea.innerHTML = dashHtml + '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-top:10px;">NEXUS denkt nach...</div>';
+}
 
-        function askTrigger(text) {
-             addBubble(text, "user"); 
-             askAI(text, false);
-        }
+// KORRIGIERTE BUBBLE FUNKTION (Sicherer)
+function addBubble(text, side) {
+    const area = document.getElementById('chat-area');
+    const typing = document.getElementById('typing');
+    
+    // Falls das Dashboard noch da ist, entfernen wir es beim ersten Chat
+    const dash = document.getElementById('dashboard');
+    if (dash && side === 'user') {
+        // Optional: Dashboard ausblenden, sobald der Chat beginnt
+        // dash.style.display = 'none'; 
+    }
 
-        async function postAdminMessage() {
-            const text = document.getElementById('admin-input-text').value;
-            const duration = document.getElementById('admin-duration').value; // hours
-            
-            if (!text && duration != 0) return alert("Bitte Text eingeben");
-            
-            let expiresAt = -1;
-            let isActive = true;
-
-            if (duration == 0) {
-                isActive = false; // Löschen
-            } else if (duration != 9999) {
-                expiresAt = Date.now() + (duration * 60 * 60 * 1000);
-            }
-
-            try {
-                await db.collection('settings').doc('broadcast').set({
-                    message: text,
-                    expiresAt: expiresAt,
-                    isActive: isActive,
-                    updatedAt: Date.now(),
-                    author: currentUser.email
-                });
-                alert(isActive ? "Nachricht gesendet!" : "Nachricht gelöscht.");
-                closeModal('admin-modal-overlay');
-                startNewChat(); // Reload Dashboard
-            } catch (e) {
-                alert("Fehler: " + e.message);
-            }
-        }
-
+    const cont = document.createElement('div');
+    cont.className = `bubble-container ${side}-container`;
+    const content = text.includes('<div') ? text : (side === 'ai' ? marked.parse(text) : text);
+    cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
+    
+    if (typing) {
+        area.insertBefore(cont, typing);
+    } else {
+        area.appendChild(cont);
+    }
+    
+    area.scrollTop = area.scrollHeight;
+}
         // ============================================
         // AUTH & NORMAL LOGIC
         // ============================================
