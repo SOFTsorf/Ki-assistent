@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NEXUS AI | Gemini Edition</title>
+    <title>NEXUS AI | Gemini</title>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -12,25 +12,24 @@
 
     <style>
         :root {
-            --bg-color: #131314;
-            --surface-color: #1e1f20;
-            --text-main: #e3e3e3;
-            --text-sub: #c4c7c5;
+            --bg-dark: #131314;
+            --surface-dark: #1e1f20;
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
             --accent-blue: #a8c7fa;
             --user-bubble: #282a2c;
-            --sidebar-width: 280px;
-            --gradient-gemini: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+            --gemini-gradient: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
         }
 
         body, html { 
-            margin: 0; padding: 0; background: var(--bg-color); color: var(--text-main); 
-            font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; 
+            margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-primary); 
+            font-family: 'Google Sans', -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; 
         }
 
-        /* SIDEBAR (Original-Logik) */
+        /* SIDEBAR */
         #sidebar { 
-            position: fixed; top: 0; left: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); 
-            height: 100%; background: var(--surface-color); z-index: 2000; transition: left 0.3s ease; 
+            position: fixed; top: 0; left: -280px; width: 280px; 
+            height: 100%; background: var(--surface-dark); z-index: 2000; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; 
         }
         #sidebar.open { left: 0; box-shadow: 10px 0 50px rgba(0,0,0,0.5); }
@@ -40,59 +39,62 @@
         .header { 
             position: fixed; top: 0; width: 100%; height: 60px; display: flex; 
             align-items: center; justify-content: space-between; padding: 0 15px; 
-            box-sizing: border-box; z-index: 1000; background: var(--bg-color); 
+            box-sizing: border-box; z-index: 1000; background: var(--bg-dark);
         }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .menu-btn { cursor: pointer; padding: 5px; }
-        .profile-img { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .header-left { display: flex; align-items: center; gap: 18px; }
+        .profile-img { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; object-fit: cover; }
 
         /* CHAT AREA */
         #chat-area { 
-            position: absolute; inset: 0; padding: 70px 20px 140px 20px; 
+            position: absolute; inset: 0; padding: 70px 20px 160px 20px; 
             overflow-y: auto; display: flex; flex-direction: column; gap: 25px; 
-            scroll-behavior: smooth; -webkit-overflow-scrolling: touch; 
+            scroll-behavior: smooth;
         }
 
         /* WELCOME SCREEN */
-        #welcome-screen { margin-top: 40px; }
-        .greeting-name { font-size: 32px; color: var(--text-sub); margin-bottom: 5px; }
+        #welcome-screen { margin-top: 40px; display: block; animation: fadeIn 0.5s ease; }
+        .greeting-name { font-size: 36px; color: var(--text-secondary); margin-bottom: 5px; font-weight: 400; }
         .greeting-text { 
-            font-size: 36px; font-weight: 500; margin-bottom: 30px;
-            background: var(--gradient-gemini); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 40px; font-weight: 500; margin-bottom: 40px;
+            background: var(--gemini-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .suggestions { display: flex; flex-direction: column; gap: 10px; }
+        .suggestions { display: flex; flex-direction: column; gap: 12px; }
         .suggest-pill { 
-            background: var(--surface-color); border: none; padding: 15px; 
-            border-radius: 16px; color: var(--text-main); text-align: left; 
-            font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+            background: var(--surface-dark); border: none; padding: 14px 20px; 
+            border-radius: 16px; color: var(--text-primary); text-align: left; 
+            font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            transition: background 0.2s;
         }
         .suggest-pill:active { background: #333; }
+        .suggest-pill span { font-size: 20px; }
 
         /* BUBBLES */
         .bubble-container { display: flex; flex-direction: column; max-width: 90%; }
         .user-container { align-self: flex-end; }
         .ai-container { align-self: flex-start; width: 100%; }
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.6; font-size: 16px; word-wrap: break-word; }
-        .user { background: var(--user-bubble); color: var(--text-main); border-bottom-right-radius: 4px; }
-        .ai { background: transparent; color: var(--text-main); padding-left: 0; }
-        .ai img { max-width: 100%; border-radius: 15px; margin-top: 10px; }
+        .user { background: var(--user-bubble); color: var(--text-primary); border-bottom-right-radius: 4px; }
+        .ai { background: transparent; color: var(--text-primary); padding-left: 0; }
+        .ai img { max-width: 100%; border-radius: 16px; margin-top: 15px; display: block; border: 1px solid #333; }
 
-        /* INPUT AREA */
-        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px 15px 30px 15px; box-sizing: border-box; background: var(--bg-color); }
-        .input-container { 
-            background: var(--surface-color); border-radius: 35px; padding: 8px 18px; 
-            display: flex; align-items: center; gap: 12px; max-width: 800px; margin: 0 auto;
+        /* FOOTER INPUT */
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px 15px 35px 15px; box-sizing: border-box; background: var(--bg-dark); }
+        .input-bar { 
+            background: var(--surface-dark); border-radius: 35px; padding: 10px 20px; 
+            display: flex; align-items: center; gap: 15px; max-width: 800px; margin: 0 auto;
         }
-        .plus-icon { color: white; font-size: 24px; cursor: pointer; padding-right: 5px; }
+        .plus-btn { color: white; font-size: 28px; cursor: pointer; font-weight: 300; }
         #input-field { 
             flex: 1; background: none; border: none; outline: none; 
-            color: white; font-size: 16px; padding: 10px 0; 
+            color: white; font-size: 16px;
         }
-        .input-icons { display: flex; gap: 15px; align-items: center; }
-        .input-icons svg { fill: white; width: 24px; cursor: pointer; }
-        .active-mic { fill: var(--accent-blue) !important; }
+        .icon-group { display: flex; gap: 18px; align-items: center; }
+        .icon-group svg { fill: white; width: 24px; height: 24px; cursor: pointer; }
+        .mic-active svg { fill: var(--accent-blue); }
 
-        #typing { color: var(--text-sub); font-size: 13px; margin-top: -15px; padding-left: 5px; }
+        #typing-indicator { color: var(--text-secondary); font-size: 13px; margin-bottom: 10px; display: none; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body onload="initApp()">
@@ -100,30 +102,30 @@
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     
     <div id="sidebar">
-        <div style="font-size: 20px; font-weight: bold; padding-bottom: 10px; border-bottom: 1px solid #333;">NEXUS AI</div>
+        <div style="font-size: 22px; font-weight: 500; margin-bottom: 10px;">NEXUS AI</div>
         
         <div id="logged-out-view">
-            <button onclick="loginWithGoogle()" style="width:100%; padding:12px; border-radius:20px; border:none; background:white; font-weight:bold; cursor:pointer;">Mit Google anmelden</button>
+            <button onclick="loginWithGoogle()" style="width:100%; padding:12px; border-radius:24px; border:none; background:white; font-weight:bold; cursor:pointer;">Mit Google anmelden</button>
         </div>
         
-        <div id="logged-in-view" style="display: none; flex-direction: column; align-items: center; gap: 10px;">
-            <img id="sidebar-avatar" src="" style="width: 60px; height: 60px; border-radius: 50%;">
-            <div id="sidebar-username" style="font-weight: bold;"></div>
-            <button onclick="logout()" style="background:none; border:1px solid #ff4444; color:#ff4444; padding:5px 15px; border-radius:15px; cursor:pointer;">Abmelden</button>
+        <div id="logged-in-view" style="display: none; flex-direction: column; align-items: center; gap: 12px;">
+            <img id="sidebar-avatar" src="" style="width: 55px; height: 55px; border-radius: 50%; border: 2px solid var(--accent-blue);">
+            <div id="sidebar-username" style="font-weight: 500;"></div>
+            <button onclick="logout()" style="background:none; border:1px solid #ff4444; color:#ff4444; padding:6px 16px; border-radius:20px; font-size:12px; cursor:pointer;">Abmelden</button>
         </div>
 
-        <div style="margin-top: 20px; font-size: 12px; color: var(--text-sub); text-transform: uppercase;">Letzte Chats</div>
-        <div id="history-list" style="flex: 1; overflow-y: auto;"></div>
+        <div style="margin-top: 20px; font-size: 11px; color: #888; letter-spacing: 1px; text-transform: uppercase;">Verlauf</div>
+        <div id="history-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;"></div>
         
-        <button onclick="executeClearHistory()" style="background:rgba(255,0,0,0.1); color:#ff4444; border:none; padding:10px; border-radius:10px; cursor:pointer;">Verlauf leeren</button>
+        <button onclick="executeClearHistory()" style="background:rgba(255,68,68,0.1); color:#ff4444; border:none; padding:12px; border-radius:12px; cursor:pointer; font-weight:500;">Verlauf leeren</button>
     </div>
 
     <div class="header">
         <div class="header-left">
-            <div class="menu-btn" onclick="toggleSidebar()">
+            <div onclick="toggleSidebar()" style="cursor:pointer;">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
             </div>
-            <div style="font-size: 18px; font-weight: 500; color: var(--text-sub);">Gemini</div>
+            <div style="font-size: 18px; font-weight: 500; color: var(--text-secondary);">Gemini</div>
         </div>
         <img id="header-avatar" class="profile-img" src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" onclick="toggleSidebar()">
     </div>
@@ -134,24 +136,24 @@
             <div class="greeting-text">Womit fangen wir an?</div>
             
             <div class="suggestions">
-                <button class="suggest-pill" onclick="sendSuggestion('Generiere ein Bild von einer Cyberpunk-Stadt')"><span>🖼️</span> Bild generieren</button>
-                <button class="suggest-pill" onclick="sendSuggestion('Erkläre mir Quantenphysik ganz einfach')"><span>💡</span> Konzept erklären</button>
-                <button class="suggest-pill" onclick="sendSuggestion('Schreibe eine E-Mail an meinen Chef')"><span>📧</span> Entwurf schreiben</button>
-                <button class="suggest-pill" onclick="sendSuggestion('Plane eine 3-Tage-Reise nach Berlin')"><span>✈️</span> Reiseplanung</button>
+                <button class="suggest-pill" onclick="sendPrompt('Generiere ein Bild von einer futuristischen Stadt')"><span>🖼️</span> Bild erstellen</button>
+                <button class="suggest-pill" onclick="sendPrompt('Hilf mir, ein komplexes Thema einfach zu verstehen')"><span>💡</span> Konzept erklären</button>
+                <button class="suggest-pill" onclick="sendPrompt('Schreibe eine E-Mail für eine Gehaltsverhandlung')"><span>📧</span> Entwurf schreiben</button>
+                <button class="suggest-pill" onclick="sendPrompt('Plane eine Reise nach Island')"><span>✈️</span> Reiseplanung</button>
             </div>
         </div>
-        <div id="typing" style="display:none;">NEXUS AI generiert...</div>
+        <div id="typing-indicator">Gemini überlegt...</div>
     </div>
 
     <div class="footer">
-        <div class="input-container">
-            <div class="plus-icon" onclick="startNewChat()">+</div>
+        <div class="input-bar">
+            <div class="plus-btn" onclick="startNewChat()">+</div>
             <input type="text" id="input-field" placeholder="Gemini fragen" autocomplete="off">
-            <div class="input-icons">
+            <div class="icon-group">
                 <div id="mic-btn" onclick="toggleMic()">
                     <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </div>
-                <div onclick="handleSend()">
+                <div onclick="processInput()">
                     <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </div>
             </div>
@@ -159,9 +161,7 @@
     </div>
 
     <script>
-        // ============================================
-        // DEINE SCHLÜSSEL (Hier einsetzen)
-        // ============================================
+        // --- DEINE ORIGINALEN DATEN ---
         const API_KEY = "SECRET_GROQ_KEY_PLACEHOLDER";
         const firebaseConfig = {
             apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
@@ -172,14 +172,13 @@
             appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
         };
 
-        // Firebase Initialisierung
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         let currentUser = null;
-
         let currentChatId = null;
         let chatHistory = [];
+        
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
@@ -198,76 +197,68 @@
                 document.getElementById('sidebar-avatar').src = user.photoURL;
                 document.getElementById('sidebar-username').innerText = user.displayName;
                 document.getElementById('greeting-name').innerText = "Hallo " + user.displayName.split(' ')[0];
-                await loadChatsFromCloud();
+                await syncCloud();
             }
         });
 
-        // --- LOGIK ---
+        // --- CORE LOGIK ---
 
         function startNewChat() {
             currentChatId = Date.now();
-            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Sei hilfreich und präzise."}];
-            
-            // UI Reset
-            const bubbles = document.querySelectorAll('.bubble-container');
-            bubbles.forEach(b => b.remove());
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch, sei präzise und freundlich."}];
+            document.querySelectorAll('.bubble-container').forEach(b => b.remove());
             document.getElementById('welcome-screen').style.display = 'block';
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
-        function sendSuggestion(text) {
+        function sendPrompt(text) {
             document.getElementById('input-field').value = text;
-            handleSend();
+            processInput();
         }
 
-        async function handleSend() {
+        async function processInput() {
             const input = document.getElementById('input-field');
             const text = input.value.trim();
             if(!text) return;
-            
+
             input.value = "";
             document.getElementById('welcome-screen').style.display = 'none';
-            
             addBubble(text, "user");
-            await askAI(text);
-        }
-
-        async function askAI(text) {
-            document.getElementById('typing').style.display = 'block';
+            
+            document.getElementById('typing-indicator').style.display = 'block';
             chatHistory.push({role: "user", content: text});
 
-            // Bild-Check
-            const lowerText = text.toLowerCase();
-            if (lowerText.includes("bild") || lowerText.includes("generiere") || lowerText.includes("zeichne")) {
+            // Bild Logik
+            const lower = text.toLowerCase();
+            if (lower.includes("bild") || lower.includes("zeichne") || lower.includes("generiere")) {
                 const prompt = text.replace(/generiere|zeichne|bild von/gi, "").trim();
-                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${Date.now()}`;
                 
                 setTimeout(() => {
                     addBubble(`<img src="${url}">`, "ai");
                     chatHistory.push({role: "assistant", content: "Bild wurde generiert."});
-                    document.getElementById('typing').style.display = 'none';
-                    saveToCloud();
-                }, 1000);
+                    document.getElementById('typing-indicator').style.display = 'none';
+                    saveChat();
+                }, 1500);
                 return;
             }
 
-            // Text-KI
+            // KI Text Logik
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
+                    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-8) })
                 });
                 const data = await res.json();
-                const ans = data.choices[0].message.content;
-                
-                chatHistory.push({role: "assistant", content: ans});
-                addBubble(ans, "ai");
-                saveToCloud();
-            } catch(e) {
-                addBubble("Fehler: " + e.message, "ai");
+                const answer = data.choices[0].message.content;
+                chatHistory.push({role: "assistant", content: answer});
+                addBubble(answer, "ai");
+                saveChat();
+            } catch (e) {
+                addBubble("⚠️ Fehler bei der Verbindung.", "ai");
             }
-            document.getElementById('typing').style.display = 'none';
+            document.getElementById('typing-indicator').style.display = 'none';
         }
 
         function addBubble(text, side) {
@@ -278,26 +269,24 @@
             const content = (side === 'ai' && !text.includes('<img')) ? marked.parse(text) : text;
             cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
             
-            area.insertBefore(cont, document.getElementById('typing'));
+            area.insertBefore(cont, document.getElementById('typing-indicator'));
             area.scrollTop = area.scrollHeight;
         }
 
-        // --- CLOUD & HISTORY ---
+        // --- STORAGE ---
 
-        async function saveToCloud() {
-            if (chatHistory.length <= 1) return;
-            const chatData = {
-                title: chatHistory[1]?.content.substring(0, 30),
+        async function saveChat() {
+            const data = {
+                title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat",
                 messages: chatHistory,
                 updatedAt: Date.now()
             };
-            
             let all = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            all[currentChatId] = chatData;
+            all[currentChatId] = data;
             localStorage.setItem('nexus_chats', JSON.stringify(all));
 
             if (currentUser) {
-                await db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
+                db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(data);
             }
             renderHistory();
         }
@@ -307,11 +296,11 @@
             list.innerHTML = '';
             let all = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             Object.keys(all).sort((a,b) => b-a).forEach(id => {
-                const div = document.createElement('div');
-                div.style = "padding:10px; cursor:pointer; font-size:14px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
-                div.innerText = all[id].title;
-                div.onclick = () => loadChat(id);
-                list.appendChild(div);
+                const item = document.createElement('div');
+                item.style = "padding:12px; cursor:pointer; font-size:14px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-radius:10px;";
+                item.innerText = all[id].title;
+                item.onclick = () => loadChat(id);
+                list.appendChild(item);
             });
         }
 
@@ -327,7 +316,7 @@
             }
         }
 
-        async function loadChatsFromCloud() {
+        async function syncCloud() {
             const snap = await db.collection('users').doc(currentUser.uid).collection('chats').get();
             let local = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             snap.forEach(doc => { local[doc.id] = doc.data(); });
@@ -341,7 +330,7 @@
             startNewChat();
         }
 
-        // --- UI UTILS ---
+        // --- UI TOOLS ---
 
         function toggleSidebar() {
             const s = document.getElementById('sidebar');
@@ -350,22 +339,18 @@
         }
 
         function toggleMic() {
-            recognition.start();
+            try { recognition.start(); } catch(e) { recognition.stop(); }
         }
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-mic');
-        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-mic');
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
         recognition.onresult = (e) => {
             document.getElementById('input-field').value = e.results[0][0].transcript;
-            handleSend();
+            processInput();
         };
 
-        function loginWithGoogle() {
-            const p = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(p);
-        }
+        function loginWithGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
         function logout() { auth.signOut().then(() => location.reload()); }
-
-        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
+        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter') processInput(); };
     </script>
 </body>
 </html>
