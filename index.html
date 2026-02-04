@@ -94,6 +94,25 @@
         .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; }
         @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+
+.gradient-text {
+    /* Die Farben des Verlaufs */
+    background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+    
+    /* Der Trick: Hintergrund nur auf den Text beschränken */
+    -webkit-background-clip: text;
+    background-clip: text;
+    
+    /* Textfarbe transparent machen, damit der Hintergrund sichtbar wird */
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* Fallback */
+    
+    /* Optional: Schrift etwas dicker machen, damit der Effekt besser wirkt */
+    font-weight: bold;
+    display: inline-block;
+}
+
     </style>
 </head>
 <body onload="initApp()">
@@ -339,11 +358,19 @@ const firebaseConfig = {
         // 5. CHAT & KI LOGIK
         // ============================================
 
+<h1 class="gradient-text">Womit fangen wir an?</h1>
+
+<p>Willkommen bei <span class="gradient-text">NEXUS AI</span>.</p>
+
+
+
+
         function startNewChat() {
             currentChatId = Date.now();
-            chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch."}];
             document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
+            addBubble(isPrivateMode ?  <h1 
+"Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
