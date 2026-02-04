@@ -3,203 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1jFS8CjRaOVsShy6PXrYERzuM2H0jNbk3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NEXUS AI</title>
+    <title>NEXUS AI | Gemini Edition</title>
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        :root { --accent-green: #00ff88; --bg-dark: #0b0b0c; --bubble-user: #007aff; --bubble-ai: #18191b; --text-main: #e8e8e8; --border-glass: rgba(255, 255, 255, 0.1); --header-bg: rgba(11, 11, 12, 0.8); --glass-blur: blur(30px); --sidebar-width: 280px; --pill-bg: #202124; --pill-text-blue: #8ab4f8; --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); }
-        [data-theme="light"] { --bg-dark: #f2f2f7; --bubble-user: #007aff; --bubble-ai: #ffffff; --text-main: #1c1c1e; --border-glass: rgba(0, 0, 0, 0.08); --header-bg: rgba(242, 242, 247, 0.8); --pill-bg: #ffffff; --pill-text-blue: #4285f4; --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb); }
-        body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; transition: background 0.3s; }
-        
-        /* SIDEBAR */
-        #sidebar { position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%; background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
-        #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
-        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
-        
-        /* AUTH SECTION IN SIDEBAR */
-        #user-profile-section { padding-bottom: 20px; border-bottom: 1px solid var(--border-glass); text-align: center; }
-        .login-btn { width: 100%; padding: 12px; border-radius: 12px; background: var(--text-main); color: var(--bg-dark); border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: transform 0.1s; }
-        .login-btn:active { transform: scale(0.98); }
-        .user-info { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .avatar-large { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent-green); object-fit: cover; }
-        .logout-btn { padding: 8px 16px; border-radius: 20px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255,68,68,0.3); font-size: 12px; font-weight: 600; cursor: pointer; }
+        :root {
+            --bg-color: #131314;
+            --surface-color: #1e1f20;
+            --text-main: #e3e3e3;
+            --text-sub: #c4c7c5;
+            --accent-blue: #a8c7fa;
+            --user-bubble: #282a2c;
+            --sidebar-width: 280px;
+            --gradient-gemini: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+        }
 
-        .private-toggle { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); }
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent-green); }
-        input:checked + .slider:before { transform: translateX(20px); }
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .history-item { padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass); font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); transition: opacity 0.2s; }
-        .history-item:active { opacity: 0.7; }
-        
-        /* MODAL */
-        #custom-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
-        #custom-modal { background: var(--bubble-ai); border: 1px solid var(--border-glass); padding: 25px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; transform: scale(0.9); transition: transform 0.3s; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; }
-        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
-        .btn-confirm { background: #ff4444; color: white; }
-        
-        /* HEADER & CHAT */
-        .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
-        #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
-        .footer { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 5px; }
-        .pill { position: relative; display: flex; align-items: center; width: 92%; max-width: 650px; background: var(--pill-bg); border-radius: 30px; padding: 6px 15px; border: none; margin-bottom: 5px; z-index: 1; }
-        .pill::before { content: ""; position: absolute; inset: -2px; background: var(--glow-gradient); border-radius: 32px; filter: blur(10px); z-index: -1; opacity: 0.8; }
-        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 12px; }
-        input[type="text"]::placeholder { color: var(--pill-text-blue); opacity: 1; font-weight: 500; }
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
+        body, html { 
+            margin: 0; padding: 0; background: var(--bg-color); color: var(--text-main); 
+            font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; 
+        }
+
+        /* SIDEBAR (Original-Logik) */
+        #sidebar { 
+            position: fixed; top: 0; left: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); 
+            height: 100%; background: var(--surface-color); z-index: 2000; transition: left 0.3s ease; 
+            padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; 
+        }
+        #sidebar.open { left: 0; box-shadow: 10px 0 50px rgba(0,0,0,0.5); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
+
+        /* HEADER */
+        .header { 
+            position: fixed; top: 0; width: 100%; height: 60px; display: flex; 
+            align-items: center; justify-content: space-between; padding: 0 15px; 
+            box-sizing: border-box; z-index: 1000; background: var(--bg-color); 
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-btn { cursor: pointer; padding: 5px; }
+        .profile-img { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* CHAT AREA */
+        #chat-area { 
+            position: absolute; inset: 0; padding: 70px 20px 140px 20px; 
+            overflow-y: auto; display: flex; flex-direction: column; gap: 25px; 
+            scroll-behavior: smooth; -webkit-overflow-scrolling: touch; 
+        }
+
+        /* WELCOME SCREEN */
+        #welcome-screen { margin-top: 40px; }
+        .greeting-name { font-size: 32px; color: var(--text-sub); margin-bottom: 5px; }
+        .greeting-text { 
+            font-size: 36px; font-weight: 500; margin-bottom: 30px;
+            background: var(--gradient-gemini); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .suggestions { display: flex; flex-direction: column; gap: 10px; }
+        .suggest-pill { 
+            background: var(--surface-color); border: none; padding: 15px; 
+            border-radius: 16px; color: var(--text-main); text-align: left; 
+            font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+        }
+        .suggest-pill:active { background: #333; }
+
+        /* BUBBLES */
+        .bubble-container { display: flex; flex-direction: column; max-width: 90%; }
         .user-container { align-self: flex-end; }
-        .ai-container { align-self: flex-start; }
-        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
-        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
-        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
-        img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
-        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
-        
-        /* COOKIE BANNER */
-        #cookie-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
-        #cookie-banner.show { transform: translateX(-50%) translateY(0); }
-        .cookie-title { font-weight: bold; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
-        .cookie-actions { display: flex; gap: 10px; margin-top: 5px; }
-        .cookie-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-        .btn-essential { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-glass); }
-        .btn-accept-all { background: var(--text-main); color: black; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* ICONS & BUTTONS */
-        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
-        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
-        .icon-btn { cursor: pointer; padding: 8px; display: flex; align-items: center; }
-        .icon-btn svg { fill: #9aa0a6; width: 22px; height: 22px; } 
-        .green-icon svg { fill: var(--accent-green) !important; }
-        .private-icon svg { fill: #888 !important; }
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
-        
-        /* LIVE MODE */
-        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 100px 0 60px 0; }
-        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
-        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; }
-        @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
-        .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .ai-container { align-self: flex-start; width: 100%; }
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.6; font-size: 16px; word-wrap: break-word; }
+        .user { background: var(--user-bubble); color: var(--text-main); border-bottom-right-radius: 4px; }
+        .ai { background: transparent; color: var(--text-main); padding-left: 0; }
+        .ai img { max-width: 100%; border-radius: 15px; margin-top: 10px; }
+
+        /* INPUT AREA */
+        .footer { position: fixed; bottom: 0; width: 100%; padding: 10px 15px 30px 15px; box-sizing: border-box; background: var(--bg-color); }
+        .input-container { 
+            background: var(--surface-color); border-radius: 35px; padding: 8px 18px; 
+            display: flex; align-items: center; gap: 12px; max-width: 800px; margin: 0 auto;
+        }
+        .plus-icon { color: white; font-size: 24px; cursor: pointer; padding-right: 5px; }
+        #input-field { 
+            flex: 1; background: none; border: none; outline: none; 
+            color: white; font-size: 16px; padding: 10px 0; 
+        }
+        .input-icons { display: flex; gap: 15px; align-items: center; }
+        .input-icons svg { fill: white; width: 24px; cursor: pointer; }
+        .active-mic { fill: var(--accent-blue) !important; }
+
+        #typing { color: var(--text-sub); font-size: 13px; margin-top: -15px; padding-left: 5px; }
     </style>
 </head>
 <body onload="initApp()">
 
-    <div id="custom-modal-overlay">
-        <div id="custom-modal">
-            <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Verlauf löschen?</div>
-            <div style="font-size: 14px; color: #a0a0a0;">Möchtest du wirklich alle gespeicherten Chats unwiderruflich entfernen?</div>
-            <div class="modal-btns">
-                <button class="modal-btn btn-cancel" onclick="closeModal()">Abbrechen</button>
-                <button class="modal-btn btn-confirm" onclick="executeClearHistory()">Löschen</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="cookie-banner">
-        <div class="cookie-title"><svg viewBox="0 0 24 24" width="20" fill="var(--accent-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>Datenschutz & Cookies</div>
-        <div style="font-size: 13px; color: #a0a0a0; line-height: 1.5;">NEXUS nutzt lokale Speichertechnologien. Deine Chats bleiben auf diesem Gerät. Es sei denn, du meldest dich mit deinem Google-Konto an.</div>
-        <div class="cookie-actions">
-            <button class="cookie-btn btn-essential" onclick="handleCookieConsent(false)">Nur Notwendige</button>
-            <button class="cookie-btn btn-accept-all" onclick="handleCookieConsent(true)">Akzeptieren</button>
-        </div>
-    </div>
-
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     
     <div id="sidebar">
-        <div id="user-profile-section">
-            <div id="logged-out-view">
-                <button class="login-btn" onclick="loginWithGoogle()" style="margin-top: 10px;">
-                    <svg style="width:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
-                    Mit Google anmelden
-                </button>
-                <div style="font-size:11px; color:#666; margin-top:8px;">Melde dich an, um Chats zu synchronisieren.</div>
+        <div style="font-size: 20px; font-weight: bold; padding-bottom: 10px; border-bottom: 1px solid #333;">NEXUS AI</div>
+        
+        <div id="logged-out-view">
+            <button onclick="loginWithGoogle()" style="width:100%; padding:12px; border-radius:20px; border:none; background:white; font-weight:bold; cursor:pointer;">Mit Google anmelden</button>
+        </div>
+        
+        <div id="logged-in-view" style="display: none; flex-direction: column; align-items: center; gap: 10px;">
+            <img id="sidebar-avatar" src="" style="width: 60px; height: 60px; border-radius: 50%;">
+            <div id="sidebar-username" style="font-weight: bold;"></div>
+            <button onclick="logout()" style="background:none; border:1px solid #ff4444; color:#ff4444; padding:5px 15px; border-radius:15px; cursor:pointer;">Abmelden</button>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 12px; color: var(--text-sub); text-transform: uppercase;">Letzte Chats</div>
+        <div id="history-list" style="flex: 1; overflow-y: auto;"></div>
+        
+        <button onclick="executeClearHistory()" style="background:rgba(255,0,0,0.1); color:#ff4444; border:none; padding:10px; border-radius:10px; cursor:pointer;">Verlauf leeren</button>
+    </div>
+
+    <div class="header">
+        <div class="header-left">
+            <div class="menu-btn" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
             </div>
+            <div style="font-size: 18px; font-weight: 500; color: var(--text-sub);">Gemini</div>
+        </div>
+        <img id="header-avatar" class="profile-img" src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" onclick="toggleSidebar()">
+    </div>
+
+    <div id="chat-area">
+        <div id="welcome-screen">
+            <div class="greeting-name" id="greeting-name">Hallo Patrick</div>
+            <div class="greeting-text">Womit fangen wir an?</div>
             
-            <div id="logged-in-view" style="display: none; margin-top: 10px;" class="user-info">
-                <img id="sidebar-avatar" src="" class="avatar-large">
-                <div id="sidebar-username" style="font-weight: bold; font-size: 16px;"></div>
-                <div style="font-size:11px; color:var(--accent-green);">● Online & Synchronisiert</div>
-                <button class="logout-btn" onclick="logout()">Abmelden</button>
+            <div class="suggestions">
+                <button class="suggest-pill" onclick="sendSuggestion('Generiere ein Bild von einer Cyberpunk-Stadt')"><span>🖼️</span> Bild generieren</button>
+                <button class="suggest-pill" onclick="sendSuggestion('Erkläre mir Quantenphysik ganz einfach')"><span>💡</span> Konzept erklären</button>
+                <button class="suggest-pill" onclick="sendSuggestion('Schreibe eine E-Mail an meinen Chef')"><span>📧</span> Entwurf schreiben</button>
+                <button class="suggest-pill" onclick="sendSuggestion('Plane eine 3-Tage-Reise nach Berlin')"><span>✈️</span> Reiseplanung</button>
             </div>
         </div>
-
-        <div class="private-toggle">
-            <span style="font-size: 14px; font-weight: bold;">Privater Chat</span>
-            <label class="switch"><input type="checkbox" id="private-mode-checkbox" onchange="updatePrivateMode()"><span class="slider"></span></label>
-        </div>
-        
-        <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
-        <div id="history-list" class="history-list"></div>
-         <div style="font-size: 12px; color: grey; font-weight: normal; margin-bottom: -10px;">Version 26.64.23</div>
-        <button onclick="openModal()" style="margin-top: auto; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
+        <div id="typing" style="display:none;">NEXUS AI generiert...</div>
     </div>
-
-    <div class="header-bar">
-        <img id="header-avatar" src="https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk" onclick="toggleSidebar()" style="height:38px; border-radius:50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
-        
-        <div style="display: flex; gap: 5px;">
-            <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
-            <div class="icon-top-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg></div>
-            <div class="icon-top-btn green-icon" id="hamburger-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
-        </div>
-    </div>
-
-    <div id="chat-area"><div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div></div>
-    <div class="blur-fade-layer"></div>
 
     <div class="footer">
-        <div class="pill">
-            <div class="icon-btn" onclick="startLive()"><svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/></svg></div>
-            <input type="text" id="input-field" placeholder="Frage etwas..." autocomplete="off">
-            <div class="icon-btn" id="mic-btn" onclick="toggleMic()"><svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+        <div class="input-container">
+            <div class="plus-icon" onclick="startNewChat()">+</div>
+            <input type="text" id="input-field" placeholder="Gemini fragen" autocomplete="off">
+            <div class="input-icons">
+                <div id="mic-btn" onclick="toggleMic()">
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                </div>
+                <div onclick="handleSend()">
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </div>
+            </div>
         </div>
-        <div style="font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; margin-bottom: 2px;">NEXUS AI kann Fehler machen. Prüfe auf Fehler.</div>
-        <div class="copyright">© 2026 - by Patrick Roth</div>
-    </div>
-
-    <div id="live-overlay">
-        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODUS</div>
-        <div class="orb-container"><div class="orb-layer"></div><div class="orb-layer" style="animation-duration: 4s; opacity: 0.3;"></div></div>
-        <button class="btn-close-live" onclick="closeLive()"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
     </div>
 
     <script>
         // ============================================
-        // 1. DEINE SCHLÜSSEL HIER EINFÜGEN
+        // DEINE SCHLÜSSEL (Hier einsetzen)
         // ============================================
-        
         const API_KEY = "SECRET_GROQ_KEY_PLACEHOLDER";
+        const firebaseConfig = {
+            apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
+            authDomain: "nexusanmeldung.firebaseapp.com",
+            projectId: "nexusanmeldung",
+            storageBucket: "nexusanmeldung.firebasestorage.app",
+            messagingSenderId: "1009526597247",
+            appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
+        };
 
-        // Kopiere das "firebaseConfig" Objekt aus der Firebase Console und füge es hier ein:
-const firebaseConfig = {
-  apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
-  authDomain: "nexusanmeldung.firebaseapp.com",
-  projectId: "nexusanmeldung",
-  storageBucket: "nexusanmeldung.firebasestorage.app",
-  messagingSenderId: "1009526597247",
-  appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
-};
-        
-        // ============================================
-        // 2. INITIALISIERUNG
-        // ============================================
-        
-        // Firebase starten
+        // Firebase Initialisierung
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -207,278 +180,192 @@ const firebaseConfig = {
 
         let currentChatId = null;
         let chatHistory = [];
-        let isLive = false;
-        let isVoiceActive = false;
-        let isPrivateMode = false;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
 
-        function initApp() { 
-            // Warten auf Auth Status, dann wird gerendert
-            initCookieCheck(); 
-            // Falls nicht eingeloggt, rendern wir direkt lokal, ansonsten warten wir auf auth.onAuthStateChanged
-            if(!localStorage.getItem('nexus_user_known')) {
-                renderHistory();
-                startNewChat();
-            }
+        function initApp() {
+            startNewChat();
+            renderHistory();
         }
 
-        // ============================================
-        // 3. AUTHENTIFIZIERUNG & SYNC LOGIK
-        // ============================================
-
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log("Eingeloggt als:", result.user.displayName);
-                    toggleSidebar(); // Menü schließen
-                }).catch((error) => {
-                    console.error("Login Fehler:", error);
-                    alert("Login fehlgeschlagen: " + error.message);
-                });
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                location.reload(); // App neu laden für sauberen Start
-            });
-        }
-
-        // Überwacht Login-Status
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
-            const loginView = document.getElementById('logged-in-view');
-            const logoutView = document.getElementById('logged-out-view');
-            const headerAvatar = document.getElementById('header-avatar');
-            const sidebarAvatar = document.getElementById('sidebar-avatar');
-            const sidebarName = document.getElementById('sidebar-username');
-
             if (user) {
-                // UI ANPASSEN
-                logoutView.style.display = 'none';
-                loginView.style.display = 'flex';
-                
-                // Bilder & Namen setzen
-                headerAvatar.src = user.photoURL;
-                sidebarAvatar.src = user.photoURL;
-                sidebarName.innerText = user.displayName;
-                
-                localStorage.setItem('nexus_user_known', 'true');
-                
-                // CHATS AUS CLOUD LADEN
+                document.getElementById('logged-out-view').style.display = 'none';
+                document.getElementById('logged-in-view').style.display = 'flex';
+                document.getElementById('header-avatar').src = user.photoURL;
+                document.getElementById('sidebar-avatar').src = user.photoURL;
+                document.getElementById('sidebar-username').innerText = user.displayName;
+                document.getElementById('greeting-name').innerText = "Hallo " + user.displayName.split(' ')[0];
                 await loadChatsFromCloud();
-            } else {
-                // UI RESET
-                logoutView.style.display = 'block';
-                loginView.style.display = 'none';
-                headerAvatar.src = "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk";
-                
-                // Lokalen Verlauf anzeigen
-                renderHistory();
-                if(!currentChatId) startNewChat();
             }
         });
 
-        // ============================================
-        // 4. SPEICHER LOGIK (HYBRID)
-        // ============================================
-
-        async function saveToLocalStorage() {
-            if (isPrivateMode || chatHistory.length <= 1) return;
-            
-            const chatData = {
-                title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat",
-                messages: chatHistory,
-                updatedAt: Date.now()
-            };
-
-            // 1. Immer Lokal Speichern
-            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            allChats[currentChatId] = chatData;
-            localStorage.setItem('nexus_chats', JSON.stringify(allChats));
-            renderHistory();
-
-            // 2. Wenn eingeloggt -> Ab in die Cloud
-            if (currentUser) {
-                try {
-                    await db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
-                } catch(e) {
-                    console.error("Cloud Save Error", e);
-                }
-            }
-        }
-
-        async function loadChatsFromCloud() {
-            if (!currentUser) return;
-            
-            // Einfache Strategie: Wir laden alles aus der Cloud und mergen es mit lokal
-            // In einer Profi-App würde man Zeitstempel vergleichen.
-            try {
-                const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
-                let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-                
-                snapshot.forEach(doc => {
-                    // Cloud überschreibt Lokal (damit Sync funktioniert)
-                    localChats[doc.id] = doc.data();
-                });
-
-                localStorage.setItem('nexus_chats', JSON.stringify(localChats));
-                renderHistory();
-                
-                // Wenn wir gerade erst gestartet sind, nichts tun. Aber wenn wir in einem leeren Chat sind:
-                if (chatHistory.length <= 1) startNewChat();
-                
-            } catch (e) {
-                console.error("Fehler beim Laden der Chats:", e);
-            }
-        }
-
-        // ============================================
-        // 5. CHAT & KI LOGIK
-        // ============================================
+        // --- LOGIK ---
 
         function startNewChat() {
             currentChatId = Date.now();
-            chatHistory = [{role: "system", content: "Antworte kurz auf Deutsch."}];
-            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Sei hilfreich und präzise."}];
+            
+            // UI Reset
+            const bubbles = document.querySelectorAll('.bubble-container');
+            bubbles.forEach(b => b.remove());
+            document.getElementById('welcome-screen').style.display = 'block';
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
-        async function askAI(text, useVoice) {
+        function sendSuggestion(text) {
+            document.getElementById('input-field').value = text;
+            handleSend();
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('input-field');
+            const text = input.value.trim();
+            if(!text) return;
+            
+            input.value = "";
+            document.getElementById('welcome-screen').style.display = 'none';
+            
+            addBubble(text, "user");
+            await askAI(text);
+        }
+
+        async function askAI(text) {
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
 
-            // A. BILD GENERIERUNG
+            // Bild-Check
             const lowerText = text.toLowerCase();
-            const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
-            if (imgKeywords.some(k => lowerText.includes(k))) {
-                const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
-                const forbidden = ["penis", "sex", "pussy", "nackt", "porn", "hitler", "hakenkreuz", "nsfw"];
+            if (lowerText.includes("bild") || lowerText.includes("generiere") || lowerText.includes("zeichne")) {
+                const prompt = text.replace(/generiere|zeichne|bild von/gi, "").trim();
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
                 
-                if (forbidden.some(word => promptText.toLowerCase().includes(word))) {
-                    addBubble("⚠️ **Sicherheitshinweis:** Diese Anfrage enthält unzulässige Begriffe.", "ai");
-                    document.getElementById('typing').style.display = 'none';
-                    return;
-                }
-
-                const seed = Math.floor(Math.random() * 9999999);
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=turbo&nologo=true`;
-                const loaderId = "loader-" + seed;
-
-                const imageHtml = `
-                    <div style="margin-top:12px; background: #1a1b1e; border-radius:16px; padding:10px; border: 1px solid rgba(255,255,255,0.1); width: fit-content;">
-                        <div id="${loaderId}" style="font-size:12px; color:var(--accent-green); margin-bottom:8px;">Bild wird generiert...</div>
-                        <div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000;">
-                            <img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;" onload="document.getElementById('${loaderId}').innerText='✓ Fertig'">
-                        </div>
-                    </div>`;
-
                 setTimeout(() => {
-                    addBubble(imageHtml, "ai");
-                    chatHistory.push({role: "assistant", content: `Bild generiert: ${promptText}`});
+                    addBubble(`<img src="${url}">`, "ai");
+                    chatHistory.push({role: "assistant", content: "Bild wurde generiert."});
                     document.getElementById('typing').style.display = 'none';
-                    saveToLocalStorage();
+                    saveToCloud();
                 }, 1000);
                 return;
             }
-            
-            // B. TEXT GENERIERUNG (GROQ)
+
+            // Text-KI
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
                     body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
                 });
-
-                if (!res.ok) throw new Error("API Fehler");
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
+                
                 chatHistory.push({role: "assistant", content: ans});
                 addBubble(ans, "ai");
-                document.getElementById('typing').style.display = 'none';
-                saveToLocalStorage();
-                if(useVoice || isLive) speak(ans);
-
-            } catch(e) { 
-                document.getElementById('typing').style.display = 'none'; 
-                addBubble("⚠️ Fehler: " + e.message, "ai");
+                saveToCloud();
+            } catch(e) {
+                addBubble("Fehler: " + e.message, "ai");
             }
+            document.getElementById('typing').style.display = 'none';
         }
-
-        // ============================================
-        // 6. UI & HELPER FUNKTIONEN
-        // ============================================
 
         function addBubble(text, side) {
             const area = document.getElementById('chat-area');
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
-            const content = text.includes('<div') ? text : (side === 'ai' ? marked.parse(text) : text);
+            
+            const content = (side === 'ai' && !text.includes('<img')) ? marked.parse(text) : text;
             cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
+            
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
+        }
+
+        // --- CLOUD & HISTORY ---
+
+        async function saveToCloud() {
+            if (chatHistory.length <= 1) return;
+            const chatData = {
+                title: chatHistory[1]?.content.substring(0, 30),
+                messages: chatHistory,
+                updatedAt: Date.now()
+            };
+            
+            let all = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            all[currentChatId] = chatData;
+            localStorage.setItem('nexus_chats', JSON.stringify(all));
+
+            if (currentUser) {
+                await db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
+            }
+            renderHistory();
         }
 
         function renderHistory() {
             const list = document.getElementById('history-list');
             list.innerHTML = '';
-            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            Object.keys(allChats).sort((a,b) => b - a).forEach(id => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                item.innerText = allChats[id].title;
-                item.onclick = () => loadChat(id);
-                list.appendChild(item);
+            let all = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            Object.keys(all).sort((a,b) => b-a).forEach(id => {
+                const div = document.createElement('div');
+                div.style = "padding:10px; cursor:pointer; font-size:14px; color:#ccc; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+                div.innerText = all[id].title;
+                div.onclick = () => loadChat(id);
+                list.appendChild(div);
             });
         }
 
         function loadChat(id) {
-            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-            if(allChats[id]) {
-                isPrivateMode = false; document.getElementById('private-mode-checkbox').checked = false; updatePrivateMode();
-                currentChatId = id; chatHistory = allChats[id].messages;
-                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-                chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai'); });
+            let all = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            if(all[id]) {
+                currentChatId = id;
+                chatHistory = all[id].messages;
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.querySelectorAll('.bubble-container').forEach(b => b.remove());
+                chatHistory.forEach(m => { if(m.role !== 'system') addBubble(m.content, m.role === 'user' ? 'user' : 'ai'); });
                 toggleSidebar();
             }
         }
 
-        // Cookie & Theme Logic
-        function initCookieCheck() {
-            const consent = localStorage.getItem('nexus_cookie_consent');
-            if (!consent) setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
+        async function loadChatsFromCloud() {
+            const snap = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+            let local = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            snap.forEach(doc => { local[doc.id] = doc.data(); });
+            localStorage.setItem('nexus_chats', JSON.stringify(local));
+            renderHistory();
         }
-        function handleCookieConsent(acceptedAll) {
-            document.getElementById('cookie-banner').classList.remove('show');
-            localStorage.setItem('nexus_cookie_consent', acceptedAll ? 'full' : 'essential');
-        }
-        function updatePrivateMode() {
-            isPrivateMode = document.getElementById('private-mode-checkbox').checked;
-            document.getElementById('hamburger-btn').className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
+
+        function executeClearHistory() {
+            localStorage.removeItem('nexus_chats');
+            renderHistory();
             startNewChat();
         }
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('open');
-            document.querySelector('.sidebar-overlay').style.display = sb.classList.contains('open') ? 'block' : 'none';
-        }
-        function openModal() { document.getElementById('custom-modal-overlay').style.display = 'flex'; setTimeout(() => document.getElementById('custom-modal-overlay').style.opacity = '1', 10); }
-        function closeModal() { document.getElementById('custom-modal-overlay').style.opacity = '0'; setTimeout(() => document.getElementById('custom-modal-overlay').style.display = 'none', 300); }
-        function executeClearHistory() { localStorage.removeItem('nexus_chats'); renderHistory(); startNewChat(); closeModal(); toggleSidebar(); }
-        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
 
-        // Voice
-        function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE'; u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} }; window.speechSynthesis.speak(u); }
-        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => { document.getElementById('mic-btn').classList.remove('active-green'); if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){} };
-        recognition.onresult = (e) => { const t = e.results[0][0].transcript; addBubble(t, "user"); askAI(t, isVoiceActive); isVoiceActive = false; };
-        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
-        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
-        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter' && e.target.value) { addBubble(e.target.value, "user"); askAI(e.target.value, false); e.target.value = ""; } };
+        // --- UI UTILS ---
+
+        function toggleSidebar() {
+            const s = document.getElementById('sidebar');
+            s.classList.toggle('open');
+            document.querySelector('.sidebar-overlay').style.display = s.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function toggleMic() {
+            recognition.start();
+        }
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-mic');
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-mic');
+        recognition.onresult = (e) => {
+            document.getElementById('input-field').value = e.results[0][0].transcript;
+            handleSend();
+        };
+
+        function loginWithGoogle() {
+            const p = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(p);
+        }
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
     </script>
 </body>
 </html>
