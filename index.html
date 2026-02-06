@@ -249,7 +249,7 @@
             } else {
                 document.getElementById('logged-out-view').style.display = 'block';
                 document.getElementById('logged-in-view').style.display = 'none';
-                document.getElementById('header-avatar').src = "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk";
+                document.getElementById('header-avatar').src = "https://lh3.googleusercontent.com/u/0/d/1AdC4w34gy3DUWdnocBj57TSzgRyXNafM/";
                 renderHistory();
                 if(!currentChatId) startNewChat();
             }
@@ -288,7 +288,7 @@
         function startNewChat() {
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte auf Deutsch."}];
-            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
+            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>';
             addBubble(isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
