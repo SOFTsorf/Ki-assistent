@@ -95,16 +95,15 @@
         @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-
-.gradient-text {
-    background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    font-weight: bold;
-    display: inline-block;
-}
+        .gradient-text {
+            background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-weight: bold;
+            display: inline-block;
+        }
 
     </style>
 </head>
@@ -283,7 +282,7 @@
         }
 
         // ============================================
-        // 4. CHAT & KI LOGIK (DIE GEWÜNSCHTE ÄNDERUNG)
+        // 4. CHAT & KI LOGIK
         // ============================================
 
         function startNewChat() {
@@ -298,7 +297,7 @@
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
 
-            // BILD GENERIERUNG (Unverändert)
+            // BILD GENERIERUNG
             const lowerText = text.toLowerCase();
             const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
             if (imgKeywords.some(k => lowerText.includes(k))) {
@@ -316,7 +315,7 @@
                 return;
             }
             
-            // TEXT GENERIERUNG (Hier wurde der Key-Aufruf durch /api/chat ersetzt)
+            // TEXT GENERIERUNG
             try {
                 const res = await fetch("/api/chat", {
                     method: "POST",
@@ -339,7 +338,7 @@
         }
 
         // ============================================
-        // 5. UI HELPER (Unverändert)
+        // 5. UI HELPER
         // ============================================
 
         function addBubble(text, side) {
@@ -395,7 +394,35 @@
         }
         function openModal() { document.getElementById('custom-modal-overlay').style.display = 'flex'; setTimeout(() => document.getElementById('custom-modal-overlay').style.opacity = '1', 10); }
         function closeModal() { document.getElementById('custom-modal-overlay').style.opacity = '0'; setTimeout(() => document.getElementById('custom-modal-overlay').style.display = 'none', 300); }
-        function executeClearHistory() { localStorage.removeItem('nexus_chats'); renderHistory(); startNewChat(); closeModal(); toggleSidebar(); }
+        
+        // FIX FÜR CLOUD-LÖSCHUNG
+        async function executeClearHistory() { 
+            // 1. Lokalen Speicher leeren
+            localStorage.removeItem('nexus_chats'); 
+
+            // 2. Cloud Speicher leeren (wenn angemeldet)
+            if (currentUser) {
+                try {
+                    // Wir holen uns alle Chats-Dokumente des Nutzers und löschen sie nacheinander
+                    const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    console.log("Cloud-Verlauf erfolgreich gelöscht.");
+                } catch (e) {
+                    console.error("Fehler beim Cloud-Löschen:", e);
+                    alert("Lokaler Verlauf gelöscht, Cloud-Fehler: " + e.message);
+                }
+            }
+
+            renderHistory(); 
+            startNewChat(); 
+            closeModal(); 
+            toggleSidebar(); 
+        }
+
         function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
         function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE'; u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} }; window.speechSynthesis.speak(u); }
         function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
