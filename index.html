@@ -95,24 +95,7 @@
         @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-
-.gradient-text {
-    /* Die Farben des Verlaufs */
-    background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
-    
-    /* Der Trick: Hintergrund nur auf den Text beschränken */
-    -webkit-background-clip: text;
-    background-clip: text;
-    
-    /* Textfarbe transparent machen, damit der Hintergrund sichtbar wird */
-    -webkit-text-fill-color: transparent;
-    color: transparent; /* Fallback */
-    
-    /* Optional: Schrift etwas dicker machen, damit der Effekt besser wirkt */
-    font-weight: bold;
-    display: inline-block;
-}
-
+        .gradient-text { background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; font-weight: bold; display: inline-block; }
     </style>
 </head>
 <body onload="initApp()">
@@ -198,32 +181,22 @@
     </div>
 
     <script>
-        // ============================================
-        // 1. DEINE SCHLÜSSEL HIER EINFÜGEN
-        // ============================================
-        
+        // DEIN API SCHLÜSSEL
         const API_KEY = "SECRET_GROQ_KEY_PLACEHOLDER";
 
-        // Kopiere das "firebaseConfig" Objekt aus der Firebase Console und füge es hier ein:
-const firebaseConfig = {
-  apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
-  authDomain: "nexusanmeldung.firebaseapp.com",
-  projectId: "nexusanmeldung",
-  storageBucket: "nexusanmeldung.firebasestorage.app",
-  messagingSenderId: "1009526597247",
-  appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
+            authDomain: "nexusanmeldung.firebaseapp.com",
+            projectId: "nexusanmeldung",
+            storageBucket: "nexusanmeldung.firebasestorage.app",
+            messagingSenderId: "1009526597247",
+            appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
+        };
         
-        // ============================================
-        // 2. INITIALISIERUNG
-        // ============================================
-        
-        // Firebase starten
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         let currentUser = null;
-
         let currentChatId = null;
         let chatHistory = [];
         let isLive = false;
@@ -234,189 +207,96 @@ const firebaseConfig = {
         recognition.lang = 'de-DE';
 
         function initApp() { 
-            // Warten auf Auth Status, dann wird gerendert
             initCookieCheck(); 
-            // Falls nicht eingeloggt, rendern wir direkt lokal, ansonsten warten wir auf auth.onAuthStateChanged
             if(!localStorage.getItem('nexus_user_known')) {
                 renderHistory();
                 startNewChat();
             }
         }
 
-        // ============================================
-        // 3. AUTHENTIFIZIERUNG & SYNC LOGIK
-        // ============================================
-
         function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log("Eingeloggt als:", result.user.displayName);
-                    toggleSidebar(); // Menü schließen
-                }).catch((error) => {
-                    console.error("Login Fehler:", error);
-                    alert("Login fehlgeschlagen: " + error.message);
-                });
+            auth.signInWithPopup(provider).catch(error => alert("Fehler: " + error.message));
         }
 
-        function logout() {
-            auth.signOut().then(() => {
-                location.reload(); // App neu laden für sauberen Start
-            });
-        }
+        function logout() { auth.signOut().then(() => location.reload()); }
 
-        // Überwacht Login-Status
         auth.onAuthStateChanged(async (user) => {
             currentUser = user;
             const loginView = document.getElementById('logged-in-view');
             const logoutView = document.getElementById('logged-out-view');
             const headerAvatar = document.getElementById('header-avatar');
-            const sidebarAvatar = document.getElementById('sidebar-avatar');
-            const sidebarName = document.getElementById('sidebar-username');
-
             if (user) {
-                // UI ANPASSEN
                 logoutView.style.display = 'none';
                 loginView.style.display = 'flex';
-                
-                // Bilder & Namen setzen
                 headerAvatar.src = user.photoURL;
-                sidebarAvatar.src = user.photoURL;
-                sidebarName.innerText = user.displayName;
-                
+                document.getElementById('sidebar-avatar').src = user.photoURL;
+                document.getElementById('sidebar-username').innerText = user.displayName;
                 localStorage.setItem('nexus_user_known', 'true');
-                
-                // CHATS AUS CLOUD LADEN
                 await loadChatsFromCloud();
             } else {
-                // UI RESET
                 logoutView.style.display = 'block';
                 loginView.style.display = 'none';
                 headerAvatar.src = "https://lh3.googleusercontent.com/u/0/d/1pXbyGi8BJZnLxTUFP4dE1lNQ3KBsvvJk";
-                
-                // Lokalen Verlauf anzeigen
                 renderHistory();
                 if(!currentChatId) startNewChat();
             }
         });
 
-        // ============================================
-        // 4. SPEICHER LOGIK (HYBRID)
-        // ============================================
-
         async function saveToLocalStorage() {
             if (isPrivateMode || chatHistory.length <= 1) return;
-            
-            const chatData = {
-                title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat",
-                messages: chatHistory,
-                updatedAt: Date.now()
-            };
-
-            // 1. Immer Lokal Speichern
+            const chatData = { title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat", messages: chatHistory, updatedAt: Date.now() };
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             allChats[currentChatId] = chatData;
             localStorage.setItem('nexus_chats', JSON.stringify(allChats));
             renderHistory();
-
-            // 2. Wenn eingeloggt -> Ab in die Cloud
-            if (currentUser) {
-                try {
-                    await db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
-                } catch(e) {
-                    console.error("Cloud Save Error", e);
-                }
-            }
+            if (currentUser) await db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
         }
 
         async function loadChatsFromCloud() {
             if (!currentUser) return;
-            
-            // Einfache Strategie: Wir laden alles aus der Cloud und mergen es mit lokal
-            // In einer Profi-App würde man Zeitstempel vergleichen.
-            try {
-                const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
-                let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
-                
-                snapshot.forEach(doc => {
-                    // Cloud überschreibt Lokal (damit Sync funktioniert)
-                    localChats[doc.id] = doc.data();
-                });
-
-                localStorage.setItem('nexus_chats', JSON.stringify(localChats));
-                renderHistory();
-                
-                // Wenn wir gerade erst gestartet sind, nichts tun. Aber wenn wir in einem leeren Chat sind:
-                if (chatHistory.length <= 1) startNewChat();
-                
-            } catch (e) {
-                console.error("Fehler beim Laden der Chats:", e);
-            }
+            const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+            let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            snapshot.forEach(doc => { localChats[doc.id] = doc.data(); });
+            localStorage.setItem('nexus_chats', JSON.stringify(localChats));
+            renderHistory();
+            if (chatHistory.length <= 1) startNewChat();
         }
 
-        // ============================================
-        // 5. CHAT & KI LOGIK
-        // ============================================
-
-
-
-
+        // --- HIER WAR DER FEHLER (FIXED) ---
         function startNewChat() {
             currentChatId = Date.now();
             chatHistory = [{role: "system", content: "Antworte auf Deutsch."}];
-            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
-            addBubble(isPrivateMode ?  <h1 
-"Privater Chat aktiv." : "Wie kann ich heute helfen?", "ai");
+            document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>';
+            
+            // Korrigierte Zeile:
+            const welcomeMsg = isPrivateMode ? "Privater Chat aktiv." : "Wie kann ich heute helfen?";
+            addBubble(welcomeMsg, "ai");
+            
             if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
         }
 
         async function askAI(text, useVoice) {
             document.getElementById('typing').style.display = 'block';
             chatHistory.push({role: "user", content: text});
-
-            // A. BILD GENERIERUNG
             const lowerText = text.toLowerCase();
             const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
+            
             if (imgKeywords.some(k => lowerText.includes(k))) {
                 const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
-                const forbidden = ["penis", "sex", "pussy", "nackt", "porn", "hitler", "hakenkreuz", "nsfw"];
-                
-                if (forbidden.some(word => promptText.toLowerCase().includes(word))) {
-                    addBubble("⚠️ **Sicherheitshinweis:** Diese Anfrage enthält unzulässige Begriffe.", "ai");
-                    document.getElementById('typing').style.display = 'none';
-                    return;
-                }
-
                 const seed = Math.floor(Math.random() * 9999999);
                 const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=turbo&nologo=true`;
-                const loaderId = "loader-" + seed;
-
-                const imageHtml = `
-                    <div style="margin-top:12px; background: #1a1b1e; border-radius:16px; padding:10px; border: 1px solid rgba(255,255,255,0.1); width: fit-content;">
-                        <div id="${loaderId}" style="font-size:12px; color:var(--accent-green); margin-bottom:8px;">Bild wird generiert...</div>
-                        <div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000;">
-                            <img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;" onload="document.getElementById('${loaderId}').innerText='✓ Fertig'">
-                        </div>
-                    </div>`;
-
-                setTimeout(() => {
-                    addBubble(imageHtml, "ai");
-                    chatHistory.push({role: "assistant", content: `Bild generiert: ${promptText}`});
-                    document.getElementById('typing').style.display = 'none';
-                    saveToLocalStorage();
-                }, 1000);
+                const imageHtml = `<div style="margin-top:12px; background:#1a1b1e; border-radius:16px; padding:10px; border:1px solid rgba(255,255,255,0.1); width:fit-content;"><div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000;"><img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;"></div></div>`;
+                setTimeout(() => { addBubble(imageHtml, "ai"); chatHistory.push({role:"assistant", content:"Bild generiert."}); document.getElementById('typing').style.display = 'none'; saveToLocalStorage(); }, 1500);
                 return;
             }
-            
-            // B. TEXT GENERIERUNG (GROQ)
+
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
                     body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: chatHistory.slice(-10) })
                 });
-
-                if (!res.ok) throw new Error("API Fehler");
                 const data = await res.json();
                 const ans = data.choices[0].message.content;
                 chatHistory.push({role: "assistant", content: ans});
@@ -424,16 +304,11 @@ const firebaseConfig = {
                 document.getElementById('typing').style.display = 'none';
                 saveToLocalStorage();
                 if(useVoice || isLive) speak(ans);
-
             } catch(e) { 
                 document.getElementById('typing').style.display = 'none'; 
-                addBubble("⚠️ Fehler: " + e.message, "ai");
+                addBubble("⚠️ Fehler: API Verbindung fehlgeschlagen.", "ai");
             }
         }
-
-        // ============================================
-        // 6. UI & HELPER FUNKTIONEN
-        // ============================================
 
         function addBubble(text, side) {
             const area = document.getElementById('chat-area');
@@ -461,28 +336,21 @@ const firebaseConfig = {
         function loadChat(id) {
             let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
             if(allChats[id]) {
-                isPrivateMode = false; document.getElementById('private-mode-checkbox').checked = false; updatePrivateMode();
                 currentChatId = id; chatHistory = allChats[id].messages;
-                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
+                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green);">NEXUS AI denkt nach...</div>';
                 chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai'); });
                 toggleSidebar();
             }
         }
 
-        // Cookie & Theme Logic
         function initCookieCheck() {
-            const consent = localStorage.getItem('nexus_cookie_consent');
-            if (!consent) setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
+            if (!localStorage.getItem('nexus_cookie_consent')) setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
         }
         function handleCookieConsent(acceptedAll) {
             document.getElementById('cookie-banner').classList.remove('show');
             localStorage.setItem('nexus_cookie_consent', acceptedAll ? 'full' : 'essential');
         }
-        function updatePrivateMode() {
-            isPrivateMode = document.getElementById('private-mode-checkbox').checked;
-            document.getElementById('hamburger-btn').className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
-            startNewChat();
-        }
+        function updatePrivateMode() { isPrivateMode = document.getElementById('private-mode-checkbox').checked; startNewChat(); }
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
             sb.classList.toggle('open');
@@ -490,14 +358,13 @@ const firebaseConfig = {
         }
         function openModal() { document.getElementById('custom-modal-overlay').style.display = 'flex'; setTimeout(() => document.getElementById('custom-modal-overlay').style.opacity = '1', 10); }
         function closeModal() { document.getElementById('custom-modal-overlay').style.opacity = '0'; setTimeout(() => document.getElementById('custom-modal-overlay').style.display = 'none', 300); }
-        function executeClearHistory() { localStorage.removeItem('nexus_chats'); renderHistory(); startNewChat(); closeModal(); toggleSidebar(); }
+        function executeClearHistory() { localStorage.removeItem('nexus_chats'); location.reload(); }
         function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
 
-        // Voice
-        function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE'; u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} }; window.speechSynthesis.speak(u); }
+        function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE'; window.speechSynthesis.speak(u); }
         function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
         recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => { document.getElementById('mic-btn').classList.remove('active-green'); if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){} };
+        recognition.onend = () => document.getElementById('mic-btn').classList.remove('active-green');
         recognition.onresult = (e) => { const t = e.results[0][0].transcript; addBubble(t, "user"); askAI(t, isVoiceActive); isVoiceActive = false; };
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
