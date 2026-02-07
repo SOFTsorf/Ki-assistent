@@ -84,7 +84,7 @@
         .action-circle svg { fill: #e8eaed; width: 22px; height: 22px; }
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
 
-        /* CHAT BUBBLES & CODE */
+        /* CHAT BUBBLES & CODE & COPY BTN */
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
         .user-container { align-self: flex-end; }
         .ai-container { align-self: flex-start; }
@@ -94,9 +94,63 @@
         img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
 
-        /* CODE BLOCK STYLING */
-        pre { background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; overflow-x: auto; margin: 8px 0; }
+        /* NEUE CODE BLOCK STYLES */
+        .code-block-wrapper {
+            margin: 12px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #000;
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.08);
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 12px;
+            color: #a0a0a0;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
+        .code-lang {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            transition: all 0.2s;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .copy-btn:hover {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.1);
+        }
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+        pre { 
+            background: transparent; 
+            border: none; 
+            padding: 12px; 
+            margin: 0; 
+            overflow-x: auto; 
+            border-radius: 0;
+        }
         code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: #a5d6ff; }
+        
         .bubble p { margin: 8px 0; }
         .bubble p:first-child { margin-top: 0; }
         .bubble p:last-child { margin-bottom: 0; }
@@ -232,6 +286,40 @@
         // 1. INITIALISIERUNG
         // ============================================
         
+        // KONFIGURATION MARKDOWN RENDERER FÜR COPY-FUNKTION
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            const lang = language || 'Text';
+            const validLang = lang.split(' ').shift();
+            return `
+            <div class="code-block-wrapper">
+                <div class="code-header">
+                    <span class="code-lang">${validLang}</span>
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        Kopieren
+                    </button>
+                </div>
+                <pre><code class="language-${validLang}">${code}</code></pre>
+            </div>`;
+        };
+        marked.setOptions({ renderer: renderer });
+
+        // COPY FUNKTION
+        function copyCode(btn) {
+            const wrapper = btn.closest('.code-block-wrapper');
+            const code = wrapper.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Kopiert!';
+                btn.style.color = 'var(--accent-green)';
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+
         const firebaseConfig = {
           apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
           authDomain: "nexusanmeldung.firebaseapp.com",
