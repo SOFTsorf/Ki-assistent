@@ -10,6 +10,9 @@
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -63,102 +66,59 @@
         
         /* HEADER & CHAT */
         .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
+        
+        /* Logo Styles */
+        .logo-text { font-weight: 800; font-size: 22px; letter-spacing: 0.5px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; height: 38px; }
+        .header-avatar-img { height: 38px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+
         #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
         
-        /* NEU: Die Leuchtlinie ganz oben am Bildschirm (identisch zum Input-Glow) */
-        .top-loading-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 3px; /* Feine Linie */
-            z-index: 9999;
-            /* Farben identisch zum Input-Feld (Blau/Cyan) */
-            background: linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent);
-            background-size: 200% 100%;
-            box-shadow: 0 0 15px rgba(0, 122, 255, 0.6);
-            display: none;
-        }
+        /* LOADING BARS */
+        .top-loading-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 9999; background: linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent); background-size: 200% 100%; box-shadow: 0 0 15px rgba(0, 122, 255, 0.6); display: none; }
+        .top-loading-bar.active { display: block; animation: top-bar-flow 1.5s linear infinite; }
+        @keyframes top-bar-flow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
-        .top-loading-bar.active {
-            display: block;
-            animation: top-bar-flow 1.5s linear infinite;
-        }
-
-        @keyframes top-bar-flow {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
-        }
-
-        /* GEMINI-STYLE EINGABEFELD */
+        /* INPUT FIELD */
         .footer { position: fixed; bottom: calc(15px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 8px; }
-        .gemini-input-container { 
-            position: relative; 
-            display: flex; 
-            align-items: center; 
-            width: 92%; 
-            max-width: 700px; 
-            background: var(--pill-bg); 
-            border-radius: 32px; 
-            padding: 8px 12px 8px 20px; 
-            box-sizing: border-box;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
-        }
-
-        /* Blau leuchtender Loader-Rahmen */
-        @keyframes border-flow {
-            from { background-position: 0% 0, 0% 0; }
-            to { background-position: 0% 0, 200% 0; }
-        }
-
-        .loading-active {
-            border: 1px solid transparent !important;
-            background-image: linear-gradient(var(--pill-bg), var(--pill-bg)), 
-                            linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent) !important;
-            background-origin: border-box !important;
-            background-clip: padding-box, border-box !important;
-            background-size: 200% 100% !important;
-            animation: border-flow 1.5s linear infinite !important;
-            box-shadow: 0 0 15px rgba(0, 122, 255, 0.4) !important;
-        }
-
-        input[type="text"] { 
-            flex: 1; 
-            background: none; 
-            border: none; 
-            outline: none; 
-            color: var(--text-main); 
-            font-size: 16px; 
-            padding: 10px 0; 
-        }
+        .gemini-input-container { position: relative; display: flex; align-items: center; width: 92%; max-width: 700px; background: var(--pill-bg); border-radius: 32px; padding: 8px 12px 8px 20px; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+        @keyframes border-flow { from { background-position: 0% 0, 0% 0; } to { background-position: 0% 0, 200% 0; } }
+        .loading-active { border: 1px solid transparent !important; background-image: linear-gradient(var(--pill-bg), var(--pill-bg)), linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent) !important; background-origin: border-box !important; background-clip: padding-box, border-box !important; background-size: 200% 100% !important; animation: border-flow 1.5s linear infinite !important; box-shadow: 0 0 15px rgba(0, 122, 255, 0.4) !important; }
+        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 10px 0; }
         input[type="text"]::placeholder { color: #80868b; font-weight: 400; }
-        
         .input-actions { display: flex; align-items: center; gap: 8px; }
-        .action-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        .action-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
         .action-circle:hover { background: rgba(255,255,255,0.05); }
         .action-circle svg { fill: #e8eaed; width: 22px; height: 22px; }
         
-        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
-
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
-        .user-container { align-self: flex-end; }
-        .ai-container { align-self: flex-start; }
+        /* ICONS STATES */
+        .active-mic svg { fill: #ff4444 !important; filter: drop-shadow(0 0 5px #ff4444); animation: pulseMic 1.5s infinite; }
+        @keyframes pulseMic { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        
+        /* CHAT BUBBLES */
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; margin-bottom: 5px; }
+        .user-container { align-self: flex-end; align-items: flex-end; }
+        .ai-container { align-self: flex-start; align-items: flex-start; }
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
         img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
+
+        /* SPEAKER ICON UNDER MESSAGE */
+        .msg-footer { margin-top: 4px; padding: 0 5px; opacity: 0.6; transition: opacity 0.2s; display: flex; gap: 10px; }
+        .msg-footer:hover { opacity: 1; }
+        .speaker-icon { cursor: pointer; width: 16px; height: 16px; fill: var(--text-main); }
+        .speaker-icon:hover { fill: var(--accent-green); }
+
+        /* CODE BLOCK STYLING - VS CODE STYLE */
+        pre { background: #1e1e1e !important; padding: 15px; border-radius: 12px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important; font-size: 14px; }
+        .hljs { background: transparent !important; padding: 0 !important; }
+        /* Scrollbar für Code */
+        pre::-webkit-scrollbar { height: 6px; }
+        pre::-webkit-scrollbar-track { background: transparent; }
+        pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
         
         /* COOKIE BANNER */
         #cookie-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
@@ -183,15 +143,7 @@
         @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
         .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        .gradient-text {
-            background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            font-weight: bold;
-            display: inline-block;
-        }
+        .gradient-text { background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; font-weight: bold; display: inline-block; }
     </style>
 </head>
 <body onload="initApp()">
@@ -250,7 +202,8 @@
     </div>
 
     <div class="header-bar">
-        <img id="header-avatar" src="https://lh3.googleusercontent.com/d/1AdC4w34gy3DUWdnocBj57TSzgRyXNafM" onclick="toggleSidebar()" style="height:38px; border-radius:50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);">
+        <div id="header-user-area" onclick="toggleSidebar()">
+            </div>
         
         <div style="display: flex; gap: 5px;">
             <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
@@ -269,7 +222,9 @@
             <input type="text" id="input-field" placeholder="NexusAI fragen" autocomplete="off">
             <div class="input-actions">
                 <div class="action-circle" id="mic-btn" onclick="toggleMic()">
-                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    <svg id="mic-svg" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
                 </div>
                 <div class="action-circle" onclick="startLive()">
                     <svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/><circle cx="12" cy="12" r="2" fill="none"/></svg>
@@ -308,14 +263,26 @@
         let currentChatId = null;
         let chatHistory = [];
         let isLive = false;
-        let isVoiceActive = false;
+        let isVoiceRecording = false;
+        let isSpeaking = false; // Status für TTS
         let isPrivateMode = false;
+        
+        // Spracherkennung
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
+        
+        // Config marked for Syntax Highlighting
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return highlight.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
 
         function initApp() { 
-            setLoadingState(true); // Startet Loader beim Seitenladen
+            setLoadingState(true);
             initCookieCheck(); 
             if(!localStorage.getItem('nexus_user_known')) {
                 renderHistory();
@@ -324,11 +291,9 @@
             }
         }
 
-        // Helper: Toggle Loader-Animation (Input UND Top-Line)
         function setLoadingState(active) {
             const container = document.getElementById('main-input-container');
             const topBar = document.getElementById('top-loading-bar');
-            
             if (active) {
                 container.classList.add('loading-active');
                 if(topBar) topBar.classList.add('active');
@@ -339,7 +304,7 @@
         }
 
         // ============================================
-        // 2. AUTHENTIFIZIERUNG & SYNC LOGIK
+        // 2. AUTHENTIFIZIERUNG & HEADER LOGIK
         // ============================================
 
         function loginWithGoogle() {
@@ -354,9 +319,12 @@
             if (user) {
                 document.getElementById('logged-out-view').style.display = 'none';
                 document.getElementById('logged-in-view').style.display = 'flex';
-                document.getElementById('header-avatar').src = user.photoURL;
                 document.getElementById('sidebar-avatar').src = user.photoURL;
                 document.getElementById('sidebar-username').innerText = user.displayName;
+                
+                // HEADER UPDATE: Zeige Bild
+                document.getElementById('header-user-area').innerHTML = `<img src="${user.photoURL}" class="header-avatar-img">`;
+                
                 localStorage.setItem('nexus_user_known', 'true');
                 await loadChatsFromCloud();
                 updateDashboardGreeting();
@@ -364,7 +332,10 @@
             } else {
                 document.getElementById('logged-out-view').style.display = 'block';
                 document.getElementById('logged-in-view').style.display = 'none';
-                document.getElementById('header-avatar').src = "https://lh3.googleusercontent.com/d/1AdC4w34gy3DUWdnocBj57TSzgRyXNafM";
+                
+                // HEADER UPDATE: Zeige Text "NEXUS" statt Oval-Bild
+                document.getElementById('header-user-area').innerHTML = `<span class="logo-text">NEXUS</span>`;
+                
                 renderHistory();
                 if(!currentChatId) startNewChat();
                 updateDashboardGreeting();
@@ -373,7 +344,7 @@
         });
 
         // ============================================
-        // 3. SPEICHER LOGIK
+        // 3. SPEICHER LOGIK (Local & Cloud)
         // ============================================
 
         async function saveToLocalStorage() {
@@ -388,7 +359,7 @@
 
         async function loadChatsFromCloud() {
             if (!currentUser) return;
-            setLoadingState(true); // Loader beim Sync
+            setLoadingState(true);
             try {
                 const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
                 let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
@@ -401,7 +372,7 @@
         }
 
         // ============================================
-        // 4. CHAT & KI LOGIK & DASHBOARD
+        // 4. CHAT, KI & VISUALS
         // ============================================
 
         function updateDashboardGreeting() {
@@ -420,7 +391,7 @@
 
         function startNewChat() {
             currentChatId = Date.now();
-            chatHistory = [{role: "system", content: "Antworte auf Deutsch."}];
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Wenn du Code schreibst, nutze Markdown Code Blocks (```Sprache ... ```)."}];
             
             const greeting = currentUser ? `Hallo, ${currentUser.displayName.split(' ')[0]}!` : "Hallo!";
             
@@ -438,7 +409,7 @@
                         </div>
                         <div class="quick-card" onclick="handleQuickAccess('Generiere einen Python Code für eine Website')">
                             <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-                            <span>Programmieren</span>
+                            <span>Programmier-Hilfe</span>
                         </div>
                         <div class="quick-card" onclick="handleQuickAccess('Plane eine Reise nach Island für 5 Tage')">
                             <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
@@ -458,7 +429,7 @@
             if (dashboard) dashboard.remove();
             
             document.getElementById('typing').style.display = 'block';
-            setLoadingState(true); // Loader beim Denken
+            setLoadingState(true);
             chatHistory.push({role: "user", content: text});
 
             // BILD GENERIERUNG
@@ -505,15 +476,35 @@
         }
 
         // ============================================
-        // 5. UI HELPER
+        // 5. UI HELPER & BUBBLES
         // ============================================
 
         function addBubble(text, side) {
             const area = document.getElementById('chat-area');
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
-            const content = text.includes('<div') ? text : (side === 'ai' ? marked.parse(text) : text);
-            cont.innerHTML = `<div class="bubble ${side}">${content}</div>`;
+            
+            // Markdown Parsing nur für AI, oder wenn es Code enthält
+            let content;
+            if (side === 'ai') {
+                content = marked.parse(text); 
+            } else {
+                content = text.includes('<div') ? text : text.replace(/\n/g, '<br>');
+            }
+            
+            // Bubble HTML + Speaker Icon
+            // Für Code: marked.js wandelt ``` in <pre><code> um, CSS styles das
+            const escapedText = text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); // Escaping für onclick
+            
+            cont.innerHTML = `
+                <div class="bubble ${side}">${content}</div>
+                <div class="msg-footer">
+                    <svg class="speaker-icon" viewBox="0 0 24 24" onclick="speak('${escapedText}')">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                </div>
+            `;
+            
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
         }
@@ -570,7 +561,7 @@
                     const batch = db.batch();
                     snapshot.forEach(doc => { batch.delete(doc.ref); });
                     await batch.commit();
-                } catch (e) { alert("Lokaler Verlauf gelöscht, Cloud-Fehler: " + e.message); }
+                } catch (e) { console.error(e); }
             }
             renderHistory(); 
             startNewChat(); 
@@ -579,13 +570,110 @@
         }
 
         function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
-        function speak(t) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang = 'de-DE'; u.onend = () => { if(isLive) try { recognition.start(); } catch(e){} }; window.speechSynthesis.speak(u); }
-        function toggleMic() { isVoiceActive = true; try { recognition.start(); } catch(e){} }
-        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
-        recognition.onend = () => { document.getElementById('mic-btn').classList.remove('active-green'); if(isLive && !window.speechSynthesis.speaking) try { recognition.start(); } catch(e){} };
-        recognition.onresult = (e) => { const t = e.results[0][0].transcript; addBubble(t, "user"); askAI(t, isVoiceActive); isVoiceActive = false; };
+        
+        // ============================================
+        // 6. MICROPHONE & SPEECH LOGIC (Erweitert)
+        // ============================================
+
+        const MIC_PATH = "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z";
+        const PAUSE_PATH = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+
+        function setMicIcon(state) {
+            const svgPath = document.querySelector('#mic-svg path');
+            const btn = document.getElementById('mic-btn');
+            
+            if (state === 'speaking') {
+                // Pause Icon
+                svgPath.setAttribute('d', PAUSE_PATH);
+                btn.classList.remove('active-mic');
+            } else if (state === 'recording') {
+                // Mic Icon, aber rot/aktiv
+                svgPath.setAttribute('d', MIC_PATH);
+                btn.classList.add('active-mic');
+            } else {
+                // Normal Mic
+                svgPath.setAttribute('d', MIC_PATH);
+                btn.classList.remove('active-mic');
+            }
+        }
+
+        function speak(text) { 
+            // Bereinige Text von HTML/Markdown für sauberes Vorlesen
+            const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, 'Codeblock').replace(/[*_#]/g, '');
+            
+            window.speechSynthesis.cancel(); // Vorheriges stoppen
+            
+            isSpeaking = true;
+            setMicIcon('speaking');
+
+            const u = new SpeechSynthesisUtterance(cleanText); 
+            u.lang = 'de-DE'; 
+            
+            u.onend = () => { 
+                isSpeaking = false;
+                setMicIcon('idle');
+                if(isLive) try { recognition.start(); } catch(e){} 
+            };
+            
+            window.speechSynthesis.speak(u); 
+        }
+
+        function stopSpeaking() {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            setMicIcon('idle');
+        }
+
+        function toggleMic() { 
+            if (isSpeaking) {
+                // FALL 1: KI spricht -> Unterbrechen
+                stopSpeaking();
+                return;
+            }
+
+            if (isVoiceRecording) {
+                // FALL 2: Aufnahme läuft -> Abbrechen
+                try { recognition.stop(); } catch(e) {}
+                isVoiceRecording = false;
+                setMicIcon('idle');
+            } else {
+                // FALL 3: Start Aufnahme
+                try { 
+                    recognition.start(); 
+                    isVoiceRecording = true;
+                    setMicIcon('recording');
+                } catch(e) {
+                    console.error(e);
+                    // Falls Fehler (z.B. schon gestartet), Status resetten
+                    isVoiceRecording = false;
+                    setMicIcon('idle');
+                }
+            }
+        }
+
+        recognition.onstart = () => { /* Icon schon gesetzt in toggleMic */ };
+        
+        recognition.onend = () => { 
+            isVoiceRecording = false;
+            if (!isSpeaking) setMicIcon('idle'); // Nur resetten wenn nicht gerade TTS startete
+            
+            // Auto-Restart für Live Mode
+            if(isLive && !window.speechSynthesis.speaking && !isSpeaking) {
+                 try { recognition.start(); isVoiceRecording = true; setMicIcon('recording'); } catch(e){} 
+            }
+        };
+
+        recognition.onresult = (e) => { 
+            const t = e.results[0][0].transcript; 
+            addBubble(t, "user"); 
+            askAI(t, true); // true = useVoice response
+            isVoiceRecording = false;
+        };
+        
+        // Live Mode Logic wrappers
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
         function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
+        
         document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter' && e.target.value) { handleQuickAccess(e.target.value); e.target.value = ""; } };
     </script>
 </body>
