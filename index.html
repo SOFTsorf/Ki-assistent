@@ -10,9 +10,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -66,11 +63,6 @@
         
         /* HEADER & CHAT */
         .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
-        
-        /* Logo Styles */
-        .logo-text { font-weight: 800; font-size: 22px; letter-spacing: 0.5px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; height: 38px; }
-        .header-avatar-img { height: 38px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
-
         #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
         
@@ -90,36 +82,33 @@
         .action-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
         .action-circle:hover { background: rgba(255,255,255,0.05); }
         .action-circle svg { fill: #e8eaed; width: 22px; height: 22px; }
-        
-        /* ICONS STATES */
-        .active-mic svg { fill: #ff4444 !important; filter: drop-shadow(0 0 5px #ff4444); animation: pulseMic 1.5s infinite; }
-        @keyframes pulseMic { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        
-        /* CHAT BUBBLES */
-        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; margin-bottom: 5px; }
-        .user-container { align-self: flex-end; align-items: flex-end; }
-        .ai-container { align-self: flex-start; align-items: flex-start; }
+        .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
+
+        /* CHAT BUBBLES & CODE */
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
+        .user-container { align-self: flex-end; }
+        .ai-container { align-self: flex-start; }
         .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
         .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
         .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
         img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
         .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
 
-        /* SPEAKER ICON UNDER MESSAGE */
-        .msg-footer { margin-top: 4px; padding: 0 5px; opacity: 0.6; transition: opacity 0.2s; display: flex; gap: 10px; }
-        .msg-footer:hover { opacity: 1; }
-        .speaker-icon { cursor: pointer; width: 16px; height: 16px; fill: var(--text-main); }
-        .speaker-icon:hover { fill: var(--accent-green); }
+        /* CODE BLOCK STYLING */
+        pre { background: #000; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; overflow-x: auto; margin: 8px 0; }
+        code { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: #a5d6ff; }
+        .bubble p { margin: 8px 0; }
+        .bubble p:first-child { margin-top: 0; }
+        .bubble p:last-child { margin-bottom: 0; }
 
-        /* CODE BLOCK STYLING - VS CODE STYLE */
-        pre { background: #1e1e1e !important; padding: 15px; border-radius: 12px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important; font-size: 14px; }
-        .hljs { background: transparent !important; padding: 0 !important; }
-        /* Scrollbar für Code */
-        pre::-webkit-scrollbar { height: 6px; }
-        pre::-webkit-scrollbar-track { background: transparent; }
-        pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-        
+        /* MESSAGE FOOTER (SPEAKER) */
+        .msg-footer { display: flex; align-items: center; justify-content: flex-start; gap: 10px; margin-top: 4px; padding: 0 4px; opacity: 0.7; }
+        .speaker-btn { cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 50%; }
+        .speaker-btn:hover { background: rgba(255,255,255,0.1); }
+        .speaker-btn svg { width: 14px; height: 14px; fill: #80868b; }
+        .user-container .msg-footer { justify-content: flex-end; }
+        .user-container .speaker-btn svg { fill: rgba(255,255,255,0.8); }
+
         /* COOKIE BANNER */
         #cookie-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
         #cookie-banner.show { transform: translateX(-50%) translateY(0); }
@@ -197,13 +186,12 @@
         
         <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
         <div id="history-list" class="history-list"></div>
-         <div style="font-size: 12px; color: grey; font-weight: normal; margin-bottom: -10px;">Version 26.64.23</div>
+         <div style="font-size: 12px; color: grey; font-weight: normal; margin-bottom: -10px;">Version 26.64.24</div>
         <button onclick="openModal()" style="margin-top: auto; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
     </div>
 
     <div class="header-bar">
-        <div id="header-user-area" onclick="toggleSidebar()">
-            </div>
+        <img id="header-avatar" src="https://lh3.googleusercontent.com/d/1AdC4w34gy3DUWdnocBj57TSzgRyXNafM" onclick="toggleSidebar()" style="height:38px; border-radius:50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); transition: border-radius 0.3s;">
         
         <div style="display: flex; gap: 5px;">
             <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
@@ -222,9 +210,7 @@
             <input type="text" id="input-field" placeholder="NexusAI fragen" autocomplete="off">
             <div class="input-actions">
                 <div class="action-circle" id="mic-btn" onclick="toggleMic()">
-                    <svg id="mic-svg" viewBox="0 0 24 24">
-                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                    </svg>
+                    <svg id="mic-icon-svg" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
                 </div>
                 <div class="action-circle" onclick="startLive()">
                     <svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/><circle cx="12" cy="12" r="2" fill="none"/></svg>
@@ -263,26 +249,16 @@
         let currentChatId = null;
         let chatHistory = [];
         let isLive = false;
-        let isVoiceRecording = false;
-        let isSpeaking = false; // Status für TTS
+        let isVoiceActive = false;
         let isPrivateMode = false;
-        
-        // Spracherkennung
+        let isSpeaking = false; // Neu für Pause-Status
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = new SpeechRecognition();
         recognition.lang = 'de-DE';
-        
-        // Config marked for Syntax Highlighting
-        marked.setOptions({
-            highlight: function(code, lang) {
-                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
-                return highlight.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
-        });
 
         function initApp() { 
-            setLoadingState(true);
+            setLoadingState(true); 
             initCookieCheck(); 
             if(!localStorage.getItem('nexus_user_known')) {
                 renderHistory();
@@ -294,6 +270,7 @@
         function setLoadingState(active) {
             const container = document.getElementById('main-input-container');
             const topBar = document.getElementById('top-loading-bar');
+            
             if (active) {
                 container.classList.add('loading-active');
                 if(topBar) topBar.classList.add('active');
@@ -304,7 +281,7 @@
         }
 
         // ============================================
-        // 2. AUTHENTIFIZIERUNG & HEADER LOGIK
+        // 2. AUTHENTIFIZIERUNG & SYNC LOGIK
         // ============================================
 
         function loginWithGoogle() {
@@ -319,12 +296,10 @@
             if (user) {
                 document.getElementById('logged-out-view').style.display = 'none';
                 document.getElementById('logged-in-view').style.display = 'flex';
+                document.getElementById('header-avatar').src = user.photoURL;
+                document.getElementById('header-avatar').style.borderRadius = "50%"; // Rund wenn eingeloggt
                 document.getElementById('sidebar-avatar').src = user.photoURL;
                 document.getElementById('sidebar-username').innerText = user.displayName;
-                
-                // HEADER UPDATE: Zeige Bild
-                document.getElementById('header-user-area').innerHTML = `<img src="${user.photoURL}" class="header-avatar-img">`;
-                
                 localStorage.setItem('nexus_user_known', 'true');
                 await loadChatsFromCloud();
                 updateDashboardGreeting();
@@ -332,10 +307,8 @@
             } else {
                 document.getElementById('logged-out-view').style.display = 'block';
                 document.getElementById('logged-in-view').style.display = 'none';
-                
-                // HEADER UPDATE: Zeige Text "NEXUS" statt Oval-Bild
-                document.getElementById('header-user-area').innerHTML = `<span class="logo-text">NEXUS</span>`;
-                
+                document.getElementById('header-avatar').src = "https://lh3.googleusercontent.com/d/1AdC4w34gy3DUWdnocBj57TSzgRyXNafM";
+                document.getElementById('header-avatar').style.borderRadius = "12px"; // Normal/Oval wenn ausgeloggt
                 renderHistory();
                 if(!currentChatId) startNewChat();
                 updateDashboardGreeting();
@@ -344,7 +317,7 @@
         });
 
         // ============================================
-        // 3. SPEICHER LOGIK (Local & Cloud)
+        // 3. SPEICHER LOGIK
         // ============================================
 
         async function saveToLocalStorage() {
@@ -359,7 +332,7 @@
 
         async function loadChatsFromCloud() {
             if (!currentUser) return;
-            setLoadingState(true);
+            setLoadingState(true); 
             try {
                 const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
                 let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
@@ -372,7 +345,7 @@
         }
 
         // ============================================
-        // 4. CHAT, KI & VISUALS
+        // 4. CHAT & KI LOGIK & DASHBOARD
         // ============================================
 
         function updateDashboardGreeting() {
@@ -391,7 +364,8 @@
 
         function startNewChat() {
             currentChatId = Date.now();
-            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Wenn du Code schreibst, nutze Markdown Code Blocks (```Sprache ... ```)."}];
+            // SYSTEM PROMPT UPDATE: Zwinge Markdown Codeblöcke
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Wenn du Code schreibst, nutze immer Markdown Code-Blöcke (```sprache ... ```)."}];
             
             const greeting = currentUser ? `Hallo, ${currentUser.displayName.split(' ')[0]}!` : "Hallo!";
             
@@ -409,7 +383,7 @@
                         </div>
                         <div class="quick-card" onclick="handleQuickAccess('Generiere einen Python Code für eine Website')">
                             <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-                            <span>Programmier-Hilfe</span>
+                            <span>Programmieren</span>
                         </div>
                         <div class="quick-card" onclick="handleQuickAccess('Plane eine Reise nach Island für 5 Tage')">
                             <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
@@ -429,10 +403,9 @@
             if (dashboard) dashboard.remove();
             
             document.getElementById('typing').style.display = 'block';
-            setLoadingState(true);
+            setLoadingState(true); 
             chatHistory.push({role: "user", content: text});
 
-            // BILD GENERIERUNG
             const lowerText = text.toLowerCase();
             const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
             if (imgKeywords.some(k => lowerText.includes(k))) {
@@ -451,7 +424,6 @@
                 return;
             }
             
-            // TEXT GENERIERUNG
             try {
                 const res = await fetch("/api/chat", {
                     method: "POST",
@@ -476,7 +448,7 @@
         }
 
         // ============================================
-        // 5. UI HELPER & BUBBLES
+        // 5. UI HELPER & RENDERER
         // ============================================
 
         function addBubble(text, side) {
@@ -484,29 +456,27 @@
             const cont = document.createElement('div');
             cont.className = `bubble-container ${side}-container`;
             
-            // Markdown Parsing nur für AI, oder wenn es Code enthält
-            let content;
-            if (side === 'ai') {
-                content = marked.parse(text); 
-            } else {
-                content = text.includes('<div') ? text : text.replace(/\n/g, '<br>');
-            }
+            // Text Rendering Logic (Markdown oder Raw HTML für Images)
+            const content = text.includes('<div style="margin-top:12px') ? text : (side === 'ai' ? marked.parse(text) : text);
             
-            // Bubble HTML + Speaker Icon
-            // Für Code: marked.js wandelt ``` in <pre><code> um, CSS styles das
-            const escapedText = text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); // Escaping für onclick
+            // Speaker Icon SVG
+            const speakerIcon = `<div class="msg-footer"><div class="speaker-btn" onclick="speakFromClick(this)"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></div></div>`;
+
+            // Bubble mit Content und Speaker Footer
+            cont.innerHTML = `<div class="bubble ${side}">${content}</div>${speakerIcon}`;
             
-            cont.innerHTML = `
-                <div class="bubble ${side}">${content}</div>
-                <div class="msg-footer">
-                    <svg class="speaker-icon" viewBox="0 0 24 24" onclick="speak('${escapedText}')">
-                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                    </svg>
-                </div>
-            `;
-            
+            // Versteckten Text für Speaker speichern (um Markdown beim Vorlesen zu vermeiden)
+            cont.dataset.speechText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, 'Codeblock');
+
             area.insertBefore(cont, document.getElementById('typing'));
             area.scrollTop = area.scrollHeight;
+        }
+
+        function speakFromClick(btn) {
+            // Finde den Container und hol den Text
+            const container = btn.closest('.bubble-container');
+            const textToSpeak = container.dataset.speechText || container.innerText;
+            speak(textToSpeak);
         }
 
         function renderHistory() {
@@ -561,7 +531,7 @@
                     const batch = db.batch();
                     snapshot.forEach(doc => { batch.delete(doc.ref); });
                     await batch.commit();
-                } catch (e) { console.error(e); }
+                } catch (e) { alert("Lokaler Verlauf gelöscht, Cloud-Fehler: " + e.message); }
             }
             renderHistory(); 
             startNewChat(); 
@@ -572,108 +542,74 @@
         function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
         
         // ============================================
-        // 6. MICROPHONE & SPEECH LOGIC (Erweitert)
+        // 6. VOICE & MIC LOGIK (Updated)
         // ============================================
 
-        const MIC_PATH = "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z";
-        const PAUSE_PATH = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
-
-        function setMicIcon(state) {
-            const svgPath = document.querySelector('#mic-svg path');
-            const btn = document.getElementById('mic-btn');
-            
-            if (state === 'speaking') {
-                // Pause Icon
-                svgPath.setAttribute('d', PAUSE_PATH);
-                btn.classList.remove('active-mic');
-            } else if (state === 'recording') {
-                // Mic Icon, aber rot/aktiv
-                svgPath.setAttribute('d', MIC_PATH);
-                btn.classList.add('active-mic');
-            } else {
-                // Normal Mic
-                svgPath.setAttribute('d', MIC_PATH);
-                btn.classList.remove('active-mic');
+        function speak(t) { 
+            // Wenn bereits gesprochen wird, abbrechen und Icon resetten
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
             }
-        }
-
-        function speak(text) { 
-            // Bereinige Text von HTML/Markdown für sauberes Vorlesen
-            const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, 'Codeblock').replace(/[*_#]/g, '');
             
-            window.speechSynthesis.cancel(); // Vorheriges stoppen
-            
+            // UI auf Pause setzen
             isSpeaking = true;
-            setMicIcon('speaking');
+            updateMicIconToPause(true);
 
-            const u = new SpeechSynthesisUtterance(cleanText); 
+            const u = new SpeechSynthesisUtterance(t); 
             u.lang = 'de-DE'; 
-            
             u.onend = () => { 
                 isSpeaking = false;
-                setMicIcon('idle');
+                updateMicIconToPause(false); // Reset zu Mic
                 if(isLive) try { recognition.start(); } catch(e){} 
-            };
-            
+            }; 
             window.speechSynthesis.speak(u); 
         }
 
-        function stopSpeaking() {
-            window.speechSynthesis.cancel();
-            isSpeaking = false;
-            setMicIcon('idle');
+        function updateMicIconToPause(pauseState) {
+            const container = document.getElementById('mic-btn');
+            if (pauseState) {
+                // Pause Icon
+                container.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                container.classList.add('active-green'); // Leuchtet beim Sprechen
+            } else {
+                // Mic Icon (Original)
+                container.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>';
+                container.classList.remove('active-green');
+            }
         }
 
         function toggleMic() { 
+            // Fall 1: KI spricht -> Stoppen
             if (isSpeaking) {
-                // FALL 1: KI spricht -> Unterbrechen
-                stopSpeaking();
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                updateMicIconToPause(false);
                 return;
             }
 
-            if (isVoiceRecording) {
-                // FALL 2: Aufnahme läuft -> Abbrechen
-                try { recognition.stop(); } catch(e) {}
-                isVoiceRecording = false;
-                setMicIcon('idle');
-            } else {
-                // FALL 3: Start Aufnahme
-                try { 
-                    recognition.start(); 
-                    isVoiceRecording = true;
-                    setMicIcon('recording');
-                } catch(e) {
-                    console.error(e);
-                    // Falls Fehler (z.B. schon gestartet), Status resetten
-                    isVoiceRecording = false;
-                    setMicIcon('idle');
-                }
+            // Fall 2: Mikrofon ist an -> Abbrechen
+            if (isVoiceActive) {
+                recognition.abort(); // Harter Abbruch
+                isVoiceActive = false;
+                document.getElementById('mic-btn').classList.remove('active-green');
+                return;
             }
+
+            // Fall 3: Starten
+            isVoiceActive = true; 
+            try { recognition.start(); } catch(e){} 
         }
 
-        recognition.onstart = () => { /* Icon schon gesetzt in toggleMic */ };
-        
+        recognition.onstart = () => document.getElementById('mic-btn').classList.add('active-green');
         recognition.onend = () => { 
-            isVoiceRecording = false;
-            if (!isSpeaking) setMicIcon('idle'); // Nur resetten wenn nicht gerade TTS startete
-            
-            // Auto-Restart für Live Mode
-            if(isLive && !window.speechSynthesis.speaking && !isSpeaking) {
-                 try { recognition.start(); isVoiceRecording = true; setMicIcon('recording'); } catch(e){} 
-            }
+            document.getElementById('mic-btn').classList.remove('active-green'); 
+            isVoiceActive = false; // Reset status on clean end
+            if(isLive && !window.speechSynthesis.speaking && !isSpeaking) try { recognition.start(); } catch(e){} 
         };
-
-        recognition.onresult = (e) => { 
-            const t = e.results[0][0].transcript; 
-            addBubble(t, "user"); 
-            askAI(t, true); // true = useVoice response
-            isVoiceRecording = false;
-        };
+        recognition.onresult = (e) => { const t = e.results[0][0].transcript; addBubble(t, "user"); askAI(t, true); isVoiceActive = false; }; // useVoice=true triggers speak()
         
-        // Live Mode Logic wrappers
         function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
-        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
-        
+        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); isSpeaking = false; updateMicIconToPause(false); }
         document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter' && e.target.value) { handleQuickAccess(e.target.value); e.target.value = ""; } };
     </script>
 </body>
