@@ -289,6 +289,12 @@
         // KONFIGURATION MARKDOWN RENDERER FÜR COPY-FUNKTION
         const renderer = new marked.Renderer();
         renderer.code = function(code, language) {
+            // FIX: Check if code is an object (Marked v12+ change)
+            if (typeof code === 'object' && code.text) {
+                language = code.lang;
+                code = code.text;
+            }
+
             const lang = language || 'Text';
             const validLang = lang.split(' ').shift();
             return `
