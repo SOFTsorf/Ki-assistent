@@ -288,6 +288,14 @@
         
         // KONFIGURATION MARKDOWN RENDERER FÜR COPY-FUNKTION
         const renderer = new marked.Renderer();
+        
+        // --- FIX: HTML ESCAPING HINZUGEFÜGT ---
+        // Verhindert, dass rohes HTML (außerhalb von Codeblöcken) gerendert wird
+        renderer.html = function(html) {
+            return html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        // ---------------------------------------
+
         renderer.code = function(code, language) {
             // FIX: Check if code is an object (Marked v12+ change)
             if (typeof code === 'object' && code.text) {
