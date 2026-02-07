@@ -2,526 +2,679 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Shooter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1-tt6xDwdG9BGZ4g5ckcN4t5HTK3IcIeR">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NEXUS AI</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
-        /* --- CSS STYLES --- */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            overflow: hidden; /* Verhindert Scrollen */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-            touch-action: none; /* Wichtig für Mobile Controls */
-        }
+        :root { --accent-green: #00ff88; --bg-dark: #0b0b0c; --bubble-user: #007aff; --bubble-ai: #18191b; --text-main: #e8e8e8; --border-glass: rgba(255, 255, 255, 0.1); --header-bg: rgba(11, 11, 12, 0.8); --glass-blur: blur(30px); --sidebar-width: 280px; --pill-bg: #1e1f20; --pill-text-blue: #8ab4f8; --glow-gradient: linear-gradient(135deg, #4285f4, #9c27b0); }
+        [data-theme="light"] { --bg-dark: #f2f2f7; --bubble-user: #007aff; --bubble-ai: #ffffff; --text-main: #1c1c1e; --border-glass: rgba(0, 0, 0, 0.08); --header-bg: rgba(242, 242, 247, 0.8); --pill-bg: #ffffff; --pill-text-blue: #4285f4; --glow-gradient: linear-gradient(135deg, #a0cfff, #d7aefb); }
+        body, html { margin: 0; padding: 0; background: var(--bg-dark); color: var(--text-main); font-family: -apple-system, system-ui, sans-serif; height: 100%; width: 100%; overflow: hidden; transition: background 0.3s; }
+        
+        /* SIDEBAR */
+        #sidebar { position: fixed; top: 0; right: calc(-1 * var(--sidebar-width)); width: var(--sidebar-width); height: 100%; background: var(--bg-dark); border-left: 1px solid var(--border-glass); z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: env(safe-area-inset-top) 15px 20px 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+        #sidebar.open { right: 0; box-shadow: -10px 0 50px rgba(0,0,0,0.5); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1999; display: none; backdrop-filter: blur(4px); }
+        
+        /* DASHBOARD STYLES */
+        .dashboard-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 40px; animation: fadeIn 0.8s ease-out; }
+        .greeting-title { font-size: 38px; font-weight: 700; margin-bottom: 30px; letter-spacing: -1px; }
+        .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 500px; padding: 10px; }
+        .quick-card { background: var(--bubble-ai); border: 1px solid var(--border-glass); padding: 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 8px; }
+        .quick-card:active { transform: scale(0.95); background: rgba(255,255,255,0.05); }
+        .quick-card svg { width: 24px; height: 24px; fill: var(--pill-text-blue); }
+        .quick-card span { font-size: 14px; font-weight: 500; color: var(--text-main); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        /* AUTH SECTION IN SIDEBAR */
+        #user-profile-section { padding-bottom: 20px; border-bottom: 1px solid var(--border-glass); text-align: center; }
+        .login-btn { width: 100%; padding: 12px; border-radius: 12px; background: var(--text-main); color: var(--bg-dark); border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: transform 0.1s; }
+        .login-btn:active { transform: scale(0.98); }
+        .user-info { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .avatar-large { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent-green); object-fit: cover; }
+        .logout-btn { padding: 8px 16px; border-radius: 20px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255,68,68,0.3); font-size: 12px; font-weight: 600; cursor: pointer; }
 
-        canvas {
-            display: block;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-        }
+        .private-toggle { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-glass); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .history-item { padding: 12px; border-radius: 10px; background: var(--bubble-ai); border: 1px solid var(--border-glass); font-size: 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); transition: opacity 0.2s; }
+        .history-item:active { opacity: 0.7; }
+        
+        /* MODAL */
+        #custom-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        #custom-modal { background: var(--bubble-ai); border: 1px solid var(--border-glass); padding: 25px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; transform: scale(0.9); transition: transform 0.3s; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .btn-confirm { background: #ff4444; color: white; }
+        
+        /* HEADER & CHAT */
+        .header-bar { position: fixed; top: 0; left: 0; width: 100%; height: calc(65px + env(safe-area-inset-top)); background: var(--header-bg); backdrop-filter: var(--glass-blur); border-bottom: 1px solid var(--border-glass); display: flex; align-items: flex-end; justify-content: space-between; padding: 0 20px 12px 20px; z-index: 1000; box-sizing: border-box; }
+        
+        /* Logo Styles */
+        .logo-text { font-weight: 800; font-size: 22px; letter-spacing: 0.5px; color: var(--text-main); cursor: pointer; display: flex; align-items: center; height: 38px; }
+        .header-avatar-img { height: 38px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
 
-        /* UI Overlay Layer */
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Klicks gehen durch UI durch zum Canvas */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+        #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
+        
+        /* LOADING BARS */
+        .top-loading-bar { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 9999; background: linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent); background-size: 200% 100%; box-shadow: 0 0 15px rgba(0, 122, 255, 0.6); display: none; }
+        .top-loading-bar.active { display: block; animation: top-bar-flow 1.5s linear infinite; }
+        @keyframes top-bar-flow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
-        /* Header / Logo Bereich */
-        #header {
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: auto; /* Buttons hier klickbar machen */
-            z-index: 10;
-        }
+        /* INPUT FIELD */
+        .footer { position: fixed; bottom: calc(15px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 8px; }
+        .gemini-input-container { position: relative; display: flex; align-items: center; width: 92%; max-width: 700px; background: var(--pill-bg); border-radius: 32px; padding: 8px 12px 8px 20px; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+        @keyframes border-flow { from { background-position: 0% 0, 0% 0; } to { background-position: 0% 0, 200% 0; } }
+        .loading-active { border: 1px solid transparent !important; background-image: linear-gradient(var(--pill-bg), var(--pill-bg)), linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent) !important; background-origin: border-box !important; background-clip: padding-box, border-box !important; background-size: 200% 100% !important; animation: border-flow 1.5s linear infinite !important; box-shadow: 0 0 15px rgba(0, 122, 255, 0.4) !important; }
+        input[type="text"] { flex: 1; background: none; border: none; outline: none; color: var(--text-main); font-size: 16px; padding: 10px 0; }
+        input[type="text"]::placeholder { color: #80868b; font-weight: 400; }
+        .input-actions { display: flex; align-items: center; gap: 8px; }
+        .action-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+        .action-circle:hover { background: rgba(255,255,255,0.05); }
+        .action-circle svg { fill: #e8eaed; width: 22px; height: 22px; }
+        
+        /* ICONS STATES */
+        .active-mic svg { fill: #ff4444 !important; filter: drop-shadow(0 0 5px #ff4444); animation: pulseMic 1.5s infinite; }
+        @keyframes pulseMic { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        
+        /* CHAT BUBBLES */
+        .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; margin-bottom: 5px; }
+        .user-container { align-self: flex-end; align-items: flex-end; }
+        .ai-container { align-self: flex-start; align-items: flex-start; }
+        .bubble { padding: 12px 18px; border-radius: 20px; line-height: 1.5; font-size: 16px; word-wrap: break-word; }
+        .user { background: var(--bubble-user); color: white; border-bottom-right-radius: 4px; }
+        .ai { background: var(--bubble-ai); border: 1px solid var(--border-glass); border-bottom-left-radius: 4px; }
+        img.generated-image { width: 100%; border-radius: 12px; margin-top: 10px; display: block; background: #222; }
+        .copyright { font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; z-index: 101; }
 
-        /* HIER IST DAS LOGO - Falls du ein Bild hattest, ersetze den Text hier */
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00ffff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px #00ffff;
-        }
+        /* SPEAKER ICON UNDER MESSAGE */
+        .msg-footer { margin-top: 4px; padding: 0 5px; opacity: 0.6; transition: opacity 0.2s; display: flex; gap: 10px; }
+        .msg-footer:hover { opacity: 1; }
+        .speaker-icon { cursor: pointer; width: 16px; height: 16px; fill: var(--text-main); }
+        .speaker-icon:hover { fill: var(--accent-green); }
 
-        .score-board {
-            font-size: 20px;
-            font-family: monospace;
-            text-align: right;
-        }
+        /* CODE BLOCK STYLING - VS CODE STYLE */
+        pre { background: #1e1e1e !important; padding: 15px; border-radius: 12px; overflow-x: auto; margin: 10px 0; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important; font-size: 14px; }
+        .hljs { background: transparent !important; padding: 0 !important; }
+        /* Scrollbar für Code */
+        pre::-webkit-scrollbar { height: 6px; }
+        pre::-webkit-scrollbar-track { background: transparent; }
+        pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        
+        /* COOKIE BANNER */
+        #cookie-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); width: 90%; max-width: 420px; background: rgba(20, 20, 22, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(25px); border-radius: 24px; padding: 20px 25px; z-index: 5000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
+        #cookie-banner.show { transform: translateX(-50%) translateY(0); }
+        .cookie-title { font-weight: bold; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .cookie-actions { display: flex; gap: 10px; margin-top: 5px; }
+        .cookie-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-essential { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--border-glass); }
+        .btn-accept-all { background: var(--text-main); color: black; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* ICONS & BUTTONS */
+        .icon-top-btn { cursor: pointer; padding: 10px; display: flex; align-items: center; }
+        .icon-top-btn svg { fill: #a0a0a0; width: 22px; height: 22px; }
+        .green-icon svg { fill: var(--accent-green) !important; }
+        .private-icon svg { fill: #888 !important; }
+        
+        /* LIVE MODE */
+        #live-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 100px 0 60px 0; }
+        .orb-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+        .orb-layer { position: absolute; width: 100%; height: 100%; border-radius: 45% 55% 50% 50% / 50% 50% 45% 55%; background: radial-gradient(circle, var(--accent-green) 0%, transparent 70%); filter: blur(30px); opacity: 0.5; animation: moveOrb 6s infinite linear; }
+        @keyframes moveOrb { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+        .btn-close-live { width: 60px; height: 60px; background: #eb4444; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Buttons */
-        .btn {
-            background: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-weight: bold;
-            transition: all 0.3s;
-            pointer-events: auto;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background: #00ffff;
-            color: #000;
-            box-shadow: 0 0 15px #00ffff;
-        }
-
-        /* Screens (Start, GameOver, Pause) */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            pointer-events: auto;
-            backdrop-filter: blur(5px);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        h1 {
-            font-size: 40px;
-            margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 0 0 20px #00ffff;
-            text-align: center;
-        }
-
-        p {
-            font-size: 18px;
-            margin-bottom: 30px;
-            color: #ccc;
-            text-align: center;
-            max-width: 80%;
-        }
-
-        /* Pause Button Icon (oben rechts) */
-        #pause-btn {
-            pointer-events: auto;
-            background: none;
-            border: 1px solid white;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 10px;
-        }
+        .gradient-text { background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; font-weight: bold; display: inline-block; }
     </style>
 </head>
-<body>
+<body onload="initApp()">
 
-<div id="game-container">
-    <canvas id="gameCanvas"></canvas>
+    <div id="top-loading-bar" class="top-loading-bar"></div>
 
-    <div id="ui-layer">
-        <div id="header">
-            <div class="logo">SPACE SHOOTER</div>
-            
-            <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <div class="score-board">Score: <span id="scoreEl">0</span></div>
-                <button id="pause-btn" onclick="togglePause()">II</button>
+    <div id="custom-modal-overlay">
+        <div id="custom-modal">
+            <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">Verlauf löschen?</div>
+            <div style="font-size: 14px; color: #a0a0a0;">Möchtest du wirklich alle gespeicherten Chats unwiderruflich entfernen?</div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">Abbrechen</button>
+                <button class="modal-btn btn-confirm" onclick="executeClearHistory()">Löschen</button>
             </div>
         </div>
     </div>
 
-    <div id="start-screen" class="screen">
-        <h1>GALAXY DEFENDER</h1>
-        <p>Steuere mit der Maus oder Touch.<br>Klicke zum Schießen.</p>
-        <button class="btn" id="startBtn">Spiel Starten</button>
+    <div id="cookie-banner">
+        <div class="cookie-title"><svg viewBox="0 0 24 24" width="20" fill="var(--accent-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>Datenschutz & Cookies</div>
+        <div style="font-size: 13px; color: #a0a0a0; line-height: 1.5;">NEXUS nutzt lokale Speichertechnologien. Deine Chats bleiben auf diesem Gerät. Es sei denn, du meldest dich mit deinem Google-Konto an.</div>
+        <div class="cookie-actions">
+            <button class="cookie-btn btn-essential" onclick="handleCookieConsent(false)">Nur Notwendige</button>
+            <button class="cookie-btn btn-accept-all" onclick="handleCookieConsent(true)">Akzeptieren</button>
+        </div>
     </div>
 
-    <div id="pause-screen" class="screen hidden">
-        <h1>PAUSE</h1>
-        <button class="btn" onclick="togglePause()">Weiter</button>
-        <button class="btn" onclick="resetGame()" style="margin-top: 15px; border-color: #ff4444; color: #ff4444;">Neustart</button>
-    </div>
-
-    <div id="game-over-screen" class="screen hidden">
-        <h1 style="color: #ff4444; text-shadow: 0 0 20px red;">GAME OVER</h1>
-        <p>Dein Score: <span id="finalScore">0</span></p>
-        <button class="btn" id="restartBtn">Nochmal spielen</button>
-    </div>
-</div>
-
-<script>
-    /* --- JAVASCRIPT LOGIC --- */
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
     
-    // UI Elemente
-    const scoreEl = document.getElementById('scoreEl');
-    const finalScoreEl = document.getElementById('finalScore');
-    const startScreen = document.getElementById('start-screen');
-    const gameOverScreen = document.getElementById('game-over-screen');
-    const pauseScreen = document.getElementById('pause-screen');
-    const startBtn = document.getElementById('startBtn');
-    const restartBtn = document.getElementById('restartBtn');
-
-    // Spiel Status
-    let animationId;
-    let score = 0;
-    let gameActive = false;
-    let isPaused = false;
-    let frames = 0;
-
-    // Canvas Größe
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Spieler Objekt
-    const player = {
-        x: canvas.width / 2,
-        y: canvas.height - 100,
-        radius: 20,
-        color: '#00ffff',
-        velocity: { x: 0, y: 0 },
-        speed: 5
-    };
-
-    // Arrays für Spielobjekte
-    let projectiles = [];
-    let enemies = [];
-    let particles = [];
-
-    // Klassen
-    class Projectile {
-        constructor(x, y, velocity) {
-            this.x = x;
-            this.y = y;
-            this.radius = 5;
-            this.color = '#fff';
-            this.velocity = velocity;
-        }
-        draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-        }
-        update() {
-            this.draw();
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
-        }
-    }
-
-    class Enemy {
-        constructor(x, y, radius, color, velocity) {
-            this.x = x;
-            this.y = y;
-            this.radius = radius;
-            this.color = color;
-            this.velocity = velocity;
-        }
-        draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-        }
-        update() {
-            this.draw();
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
-        }
-    }
-
-    class Particle {
-        constructor(x, y, radius, color, velocity) {
-            this.x = x;
-            this.y = y;
-            this.radius = radius;
-            this.color = color;
-            this.velocity = velocity;
-            this.alpha = 1;
-        }
-        draw() {
-            ctx.save();
-            ctx.globalAlpha = this.alpha;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-            ctx.restore();
-        }
-        update() {
-            this.draw();
-            this.velocity.x *= 0.99; // Reibung
-            this.velocity.y *= 0.99;
-            this.x += this.velocity.x;
-            this.y += this.velocity.y;
-            this.alpha -= 0.01;
-        }
-    }
-
-    // Gegner Spawning
-    function spawnEnemies() {
-        // Alle 1 Sekunde ein Gegner (60 frames bei 60fps)
-        if (frames % 60 === 0) {
-            const radius = Math.random() * (30 - 10) + 10;
-            let x;
-            let y;
-
-            // Zufällige Startposition (oben)
-            if (Math.random() < 0.5) {
-                x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-                y = Math.random() * canvas.height;
-            } else {
-                x = Math.random() * canvas.width;
-                y = 0 - radius;
-            }
-
-            // Farbe basierend auf Größe oder zufällig
-            const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+    <div id="sidebar">
+        <div id="user-profile-section">
+            <div id="logged-out-view">
+                <button class="login-btn" onclick="loginWithGoogle()" style="margin-top: 10px;">
+                    <svg style="width:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
+                    Mit Google anmelden
+                </button>
+                <div style="font-size:11px; color:#666; margin-top:8px;">Melde dich an, um Chats zu synchronisieren.</div>
+            </div>
             
-            // Winkel zum Spieler berechnen
-            const angle = Math.atan2(player.y - y, player.x - x);
-            const velocity = {
-                x: Math.cos(angle),
-                y: Math.sin(angle)
-            };
+            <div id="logged-in-view" style="display: none; margin-top: 10px;" class="user-info">
+                <img id="sidebar-avatar" src="" class="avatar-large">
+                <div id="sidebar-username" style="font-weight: bold; font-size: 16px;"></div>
+                <div style="font-size:11px; color:var(--accent-green);">● Online & Synchronisiert</div>
+                <button class="logout-btn" onclick="logout()">Abmelden</button>
+            </div>
+        </div>
 
-            enemies.push(new Enemy(x, y, radius, color, velocity));
-        }
-    }
-
-    // Haupt-Animation Loop
-    function animate() {
-        if (!gameActive) return;
-
-        // Wenn pausiert ist, stoppen wir das Update, aber behalten das Bild bei
-        if (isPaused) return;
-
-        animationId = requestAnimationFrame(animate);
+        <div class="private-toggle">
+            <span style="font-size: 14px; font-weight: bold;">Privater Chat</span>
+            <label class="switch"><input type="checkbox" id="private-mode-checkbox" onchange="updatePrivateMode()"><span class="slider"></span></label>
+        </div>
         
-        // Hintergrund leicht transparent übermalen für Schweif-Effekt
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        <div style="font-size: 14px; color: var(--accent-green); font-weight: bold; margin-top: 10px;">LETZTE CHATS</div>
+        <div id="history-list" class="history-list"></div>
+         <div style="font-size: 12px; color: grey; font-weight: normal; margin-bottom: -10px;">Version 26.64.23</div>
+        <button onclick="openModal()" style="margin-top: auto; background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.2); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 20px;">Verlauf leeren</button>
+    </div>
 
-        // Spieler zeichnen
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2, false);
-        ctx.fillStyle = player.color;
-        ctx.fill();
+    <div class="header-bar">
+        <div id="header-user-area" onclick="toggleSidebar()">
+            </div>
+        
+        <div style="display: flex; gap: 5px;">
+            <div class="icon-top-btn" onclick="startNewChat()"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+            <div class="icon-top-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg></div>
+            <div class="icon-top-btn green-icon" id="hamburger-btn" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div>
+        </div>
+    </div>
 
-        // Projektile
-        projectiles.forEach((projectile, index) => {
-            projectile.update();
-            // Entfernen wenn aus dem Bildschirm
-            if (projectile.x + projectile.radius < 0 || 
-                projectile.x - projectile.radius > canvas.width ||
-                projectile.y + projectile.radius < 0 ||
-                projectile.y - projectile.radius > canvas.height) {
-                setTimeout(() => {
-                    projectiles.splice(index, 1);
-                }, 0);
-            }
-        });
+    <div id="chat-area">
+        <div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>
+    </div>
+    <div class="blur-fade-layer"></div>
 
-        // Partikel (Explosionen)
-        particles.forEach((particle, index) => {
-            if (particle.alpha <= 0) {
-                particles.splice(index, 1);
-            } else {
-                particle.update();
-            }
-        });
+    <div class="footer">
+        <div class="gemini-input-container" id="main-input-container">
+            <input type="text" id="input-field" placeholder="NexusAI fragen" autocomplete="off">
+            <div class="input-actions">
+                <div class="action-circle" id="mic-btn" onclick="toggleMic()">
+                    <svg id="mic-svg" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                </div>
+                <div class="action-circle" onclick="startLive()">
+                    <svg viewBox="0 0 24 24"><path d="M12 2l2.42 7.42H22l-6.18 4.51 2.35 7.42L12 16.82l-6.17 4.53 2.35-7.42L2 9.42h7.58L12 2z"/><circle cx="12" cy="12" r="2" fill="none"/></svg>
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 10px; color: rgba(128, 128, 128, 0.4); pointer-events: none; margin-bottom: 2px;">NEXUS AI kann Fehler machen. Prüfe auf Fehler.</div>
+        <div class="copyright">by Nexus with ❤️</div>
+    </div>
 
-        // Gegner
-        enemies.forEach((enemy, index) => {
-            enemy.update();
+    <div id="live-overlay">
+        <div style="color: var(--accent-green); letter-spacing: 3px; font-weight: bold;">LIVE MODUS</div>
+        <div class="orb-container"><div class="orb-layer"></div><div class="orb-layer" style="animation-duration: 4s; opacity: 0.3;"></div></div>
+        <button class="btn-close-live" onclick="closeLive()"><svg viewBox="0 0 24 24" width="28" fill="white"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 17.59 13.41 12z"/></svg></button>
+    </div>
 
-            // Distanz zum Spieler (Game Over Check)
-            const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
-            if (dist - enemy.radius - player.radius < 1) {
-                endGame();
-            }
-
-            // Kollision Projektil - Gegner
-            projectiles.forEach((projectile, pIndex) => {
-                const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
-                
-                // Treffer
-                if (dist - enemy.radius - projectile.radius < 1) {
-                    
-                    // Explosion erzeugen
-                    for (let i = 0; i < enemy.radius * 2; i++) {
-                        particles.push(new Particle(
-                            projectile.x, 
-                            projectile.y, 
-                            Math.random() * 2, 
-                            enemy.color, 
-                            {
-                                x: (Math.random() - 0.5) * (Math.random() * 6),
-                                y: (Math.random() - 0.5) * (Math.random() * 6)
-                            }
-                        ));
-                    }
-
-                    // Score erhöhen (größere Gegner geben mehr Punkte)
-                    if (enemy.radius - 10 > 5) {
-                        // Gegner verkleinern statt sofort töten
-                        gsap.to(enemy, { radius: enemy.radius - 10 });
-                        score += 100;
-                        scoreEl.innerHTML = score;
-                        setTimeout(() => {
-                            projectiles.splice(pIndex, 1);
-                        }, 0);
-                    } else {
-                        // Gegner komplett entfernen
-                        score += 250;
-                        scoreEl.innerHTML = score;
-                        setTimeout(() => {
-                            enemies.splice(index, 1);
-                            projectiles.splice(pIndex, 1);
-                        }, 0);
-                    }
-                }
-            });
-        });
-
-        spawnEnemies();
-        frames++;
-    }
-
-    // --- GAME STEUERUNG ---
-
-    function init() {
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-        projectiles = [];
-        enemies = [];
-        particles = [];
-        score = 0;
-        scoreEl.innerHTML = score;
-        frames = 0;
-        gameActive = true;
-        isPaused = false;
-    }
-
-    function startGame() {
-        init();
-        animate();
-        startScreen.classList.add('hidden');
-        gameOverScreen.classList.add('hidden');
-        pauseScreen.classList.add('hidden');
-    }
-
-    function resetGame() {
-        // Komplett neu starten
-        cancelAnimationFrame(animationId);
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas säubern
-        startGame();
-    }
-
-    function endGame() {
-        gameActive = false;
-        cancelAnimationFrame(animationId);
-        finalScoreEl.innerHTML = score;
-        gameOverScreen.classList.remove('hidden');
-    }
-
-    function togglePause() {
-        if (!gameActive) return; // Nicht pausieren im Menü
-
-        isPaused = !isPaused;
-
-        if (isPaused) {
-            cancelAnimationFrame(animationId); // Stop Loop
-            pauseScreen.classList.remove('hidden'); // Zeige Pause Menü
-        } else {
-            pauseScreen.classList.add('hidden'); // Verstecke Pause Menü
-            animate(); // Starte Loop neu
-        }
-    }
-
-    // Event Listeners
-    startBtn.addEventListener('click', startGame);
-    restartBtn.addEventListener('click', resetGame);
-
-    // Schießen bei Klick
-    window.addEventListener('click', (event) => {
-        // Verhindern, dass Klick auf UI Buttons feuert
-        if (event.target.tagName === 'BUTTON') return;
-        if (!gameActive || isPaused) return;
-
-        const angle = Math.atan2(event.clientY - player.y, event.clientX - player.x);
-        const velocity = {
-            x: Math.cos(angle) * 5,
-            y: Math.sin(angle) * 5
+    <script>
+        // ============================================
+        // 1. INITIALISIERUNG
+        // ============================================
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyCefysePJNfZM_ng3wgiZvMXIQ0RcmFxJ0",
+          authDomain: "nexusanmeldung.firebaseapp.com",
+          projectId: "nexusanmeldung",
+          storageBucket: "nexusanmeldung.firebasestorage.app",
+          messagingSenderId: "1009526597247",
+          appId: "1:1009526597247:web:af26faf977a42a2cf2014a"
         };
-        projectiles.push(new Projectile(player.x, player.y, velocity));
-    });
-
-    // Bewegung (Desktop & Mobile)
-    window.addEventListener('mousemove', (event) => {
-        if (!gameActive || isPaused) return;
-        // Einfache Mausverfolgung mit Verzögerung (optional)
-        // Hier direkt:
-        // player.x = event.clientX;
-        // player.y = event.clientY;
         
-        // Oder mit GSAP für smooth movement (falls vorhanden) oder linear interpolation:
-        gsap.to(player, { x: event.clientX, y: event.clientY, duration: 0.1 });
-    });
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
 
-    // Touch Support
-    window.addEventListener('touchmove', (event) => {
-        if (!gameActive || isPaused) return;
-        const touch = event.touches[0];
-        gsap.to(player, { x: touch.clientX, y: touch.clientY, duration: 0.1 });
-    }, { passive: false });
+        let currentChatId = null;
+        let chatHistory = [];
+        let isLive = false;
+        let isVoiceRecording = false;
+        let isSpeaking = false; // Status für TTS
+        let isPrivateMode = false;
+        
+        // Spracherkennung
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = new SpeechRecognition();
+        recognition.lang = 'de-DE';
+        
+        // Config marked for Syntax Highlighting
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                return highlight.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
 
-    // GSAP (Animation Library) - kleine Hilfe, falls nicht geladen, nutzen wir Fallback
-    // Wir fügen ein Script Tag für GSAP hinzu, damit Animationen weich sind
-    const script = document.createElement('script');
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js";
-    script.onload = () => { console.log("GSAP loaded"); };
-    document.head.appendChild(script);
+        function initApp() { 
+            setLoadingState(true);
+            initCookieCheck(); 
+            if(!localStorage.getItem('nexus_user_known')) {
+                renderHistory();
+                startNewChat();
+                setTimeout(() => setLoadingState(false), 2000);
+            }
+        }
 
-</script>
+        function setLoadingState(active) {
+            const container = document.getElementById('main-input-container');
+            const topBar = document.getElementById('top-loading-bar');
+            if (active) {
+                container.classList.add('loading-active');
+                if(topBar) topBar.classList.add('active');
+            } else {
+                container.classList.remove('loading-active');
+                if(topBar) topBar.classList.remove('active');
+            }
+        }
+
+        // ============================================
+        // 2. AUTHENTIFIZIERUNG & HEADER LOGIK
+        // ============================================
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch((error) => alert("Login fehlgeschlagen: " + error.message));
+        }
+
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('logged-out-view').style.display = 'none';
+                document.getElementById('logged-in-view').style.display = 'flex';
+                document.getElementById('sidebar-avatar').src = user.photoURL;
+                document.getElementById('sidebar-username').innerText = user.displayName;
+                
+                // HEADER UPDATE: Zeige Bild
+                document.getElementById('header-user-area').innerHTML = `<img src="${user.photoURL}" class="header-avatar-img">`;
+                
+                localStorage.setItem('nexus_user_known', 'true');
+                await loadChatsFromCloud();
+                updateDashboardGreeting();
+                setLoadingState(false);
+            } else {
+                document.getElementById('logged-out-view').style.display = 'block';
+                document.getElementById('logged-in-view').style.display = 'none';
+                
+                // HEADER UPDATE: Zeige Text "NEXUS" statt Oval-Bild
+                document.getElementById('header-user-area').innerHTML = `<span class="logo-text">NEXUS</span>`;
+                
+                renderHistory();
+                if(!currentChatId) startNewChat();
+                updateDashboardGreeting();
+                setLoadingState(false);
+            }
+        });
+
+        // ============================================
+        // 3. SPEICHER LOGIK (Local & Cloud)
+        // ============================================
+
+        async function saveToLocalStorage() {
+            if (isPrivateMode || chatHistory.length <= 1) return;
+            const chatData = { title: chatHistory[1]?.content.substring(0, 30) || "Neuer Chat", messages: chatHistory, updatedAt: Date.now() };
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            allChats[currentChatId] = chatData;
+            localStorage.setItem('nexus_chats', JSON.stringify(allChats));
+            renderHistory();
+            if (currentUser) db.collection('users').doc(currentUser.uid).collection('chats').doc(currentChatId.toString()).set(chatData);
+        }
+
+        async function loadChatsFromCloud() {
+            if (!currentUser) return;
+            setLoadingState(true);
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+                let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+                snapshot.forEach(doc => { localChats[doc.id] = doc.data(); });
+                localStorage.setItem('nexus_chats', JSON.stringify(localChats));
+                renderHistory();
+                if (chatHistory.length <= 1) startNewChat();
+            } catch (e) { console.error("Sync Fehler:", e); }
+            finally { setLoadingState(false); }
+        }
+
+        // ============================================
+        // 4. CHAT, KI & VISUALS
+        // ============================================
+
+        function updateDashboardGreeting() {
+            const greetingEl = document.getElementById('greeting-text');
+            if (greetingEl) {
+                greetingEl.innerText = currentUser ? `Hallo, ${currentUser.displayName.split(' ')[0]}!` : "Hallo!";
+            }
+        }
+
+        function handleQuickAccess(text) {
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard) dashboard.remove();
+            addBubble(text, "user");
+            askAI(text, false);
+        }
+
+        function startNewChat() {
+            currentChatId = Date.now();
+            chatHistory = [{role: "system", content: "Antworte auf Deutsch. Wenn du Code schreibst, nutze Markdown Code Blocks (```Sprache ... ```)."}];
+            
+            const greeting = currentUser ? `Hallo, ${currentUser.displayName.split(' ')[0]}!` : "Hallo!";
+            
+            const dashboardHtml = `
+                <div id="dashboard" class="dashboard-container">
+                    <div class="greeting-title gradient-text" id="greeting-text">${greeting}</div>
+                    <div class="quick-grid">
+                        <div class="quick-card" onclick="handleQuickAccess('Schreibe eine kreative Kurzgeschichte')">
+                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            <span>Kreatives Schreiben</span>
+                        </div>
+                        <div class="quick-card" onclick="handleQuickAccess('Erkläre mir Quantenphysik ganz einfach')">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                            <span>Wissen & Lernen</span>
+                        </div>
+                        <div class="quick-card" onclick="handleQuickAccess('Generiere einen Python Code für eine Website')">
+                            <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                            <span>Programmier-Hilfe</span>
+                        </div>
+                        <div class="quick-card" onclick="handleQuickAccess('Plane eine Reise nach Island für 5 Tage')">
+                            <svg viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
+                            <span>Reiseplanung</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('chat-area').innerHTML = dashboardHtml + '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS AI denkt nach...</div>';
+            
+            if(document.getElementById('sidebar').classList.contains('open')) toggleSidebar();
+        }
+
+        async function askAI(text, useVoice) {
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard) dashboard.remove();
+            
+            document.getElementById('typing').style.display = 'block';
+            setLoadingState(true);
+            chatHistory.push({role: "user", content: text});
+
+            // BILD GENERIERUNG
+            const lowerText = text.toLowerCase();
+            const imgKeywords = ["generiere", "zeichne", "erstelle ein bild", "foto von", "bild von"];
+            if (imgKeywords.some(k => lowerText.includes(k))) {
+                const promptText = text.replace(/generiere|zeichne|erstelle ein bild von|bild von/gi, "").trim();
+                const seed = Math.floor(Math.random() * 9999999);
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=1024&seed=${seed}&model=turbo&nologo=true`;
+                const loaderId = "loader-" + seed;
+                const imageHtml = `<div style="margin-top:12px; background: #1a1b1e; border-radius:16px; padding:10px; border: 1px solid rgba(255,255,255,0.1); width: fit-content;"><div id="${loaderId}" style="font-size:12px; color:var(--accent-green); margin-bottom:8px;">Bild wird generiert...</div><div style="position:relative; width:220px; height:220px; overflow:hidden; border-radius:10px; background:#000;"><img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;" onload="document.getElementById('${loaderId}').innerText='✓ Fertig'"></div></div>`;
+                setTimeout(() => {
+                    addBubble(imageHtml, "ai");
+                    chatHistory.push({role: "assistant", content: `Bild generiert: ${promptText}`});
+                    document.getElementById('typing').style.display = 'none';
+                    setLoadingState(false);
+                    saveToLocalStorage();
+                }, 1000);
+                return;
+            }
+            
+            // TEXT GENERIERUNG
+            try {
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages: chatHistory.slice(-10) })
+                });
+
+                if (!res.ok) throw new Error("API Fehler");
+                const data = await res.json();
+                const ans = data.choices[0].message.content;
+                chatHistory.push({role: "assistant", content: ans});
+                addBubble(ans, "ai");
+                document.getElementById('typing').style.display = 'none';
+                setLoadingState(false);
+                saveToLocalStorage();
+                if(useVoice || isLive) speak(ans);
+            } catch(e) { 
+                document.getElementById('typing').style.display = 'none'; 
+                setLoadingState(false);
+                addBubble("⚠️ Fehler: Verbindung zum Server fehlgeschlagen.", "ai");
+            }
+        }
+
+        // ============================================
+        // 5. UI HELPER & BUBBLES
+        // ============================================
+
+        function addBubble(text, side) {
+            const area = document.getElementById('chat-area');
+            const cont = document.createElement('div');
+            cont.className = `bubble-container ${side}-container`;
+            
+            // Markdown Parsing nur für AI, oder wenn es Code enthält
+            let content;
+            if (side === 'ai') {
+                content = marked.parse(text); 
+            } else {
+                content = text.includes('<div') ? text : text.replace(/\n/g, '<br>');
+            }
+            
+            // Bubble HTML + Speaker Icon
+            // Für Code: marked.js wandelt ``` in <pre><code> um, CSS styles das
+            const escapedText = text.replace(/"/g, '&quot;').replace(/'/g, "\\'"); // Escaping für onclick
+            
+            cont.innerHTML = `
+                <div class="bubble ${side}">${content}</div>
+                <div class="msg-footer">
+                    <svg class="speaker-icon" viewBox="0 0 24 24" onclick="speak('${escapedText}')">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                </div>
+            `;
+            
+            area.insertBefore(cont, document.getElementById('typing'));
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            Object.keys(allChats).sort((a,b) => b - a).forEach(id => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerText = allChats[id].title;
+                item.onclick = () => loadChat(id);
+                list.appendChild(item);
+            });
+        }
+
+        function loadChat(id) {
+            let allChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
+            if(allChats[id]) {
+                isPrivateMode = false; document.getElementById('private-mode-checkbox').checked = false; updatePrivateMode();
+                currentChatId = id; chatHistory = allChats[id].messages;
+                document.getElementById('chat-area').innerHTML = '<div id="typing" style="display:none; color:var(--accent-green); font-size:13px; margin-bottom:10px;">NEXUS denkt nach...</div>';
+                chatHistory.forEach(msg => { if(msg.role !== 'system') addBubble(msg.content, msg.role === 'user' ? 'user' : 'ai'); });
+                toggleSidebar();
+            }
+        }
+
+        function initCookieCheck() {
+            if (!localStorage.getItem('nexus_cookie_consent')) setTimeout(() => document.getElementById('cookie-banner').classList.add('show'), 1000);
+        }
+        function handleCookieConsent(acceptedAll) {
+            document.getElementById('cookie-banner').classList.remove('show');
+            localStorage.setItem('nexus_cookie_consent', acceptedAll ? 'full' : 'essential');
+        }
+        function updatePrivateMode() {
+            isPrivateMode = document.getElementById('private-mode-checkbox').checked;
+            document.getElementById('hamburger-btn').className = isPrivateMode ? 'icon-top-btn private-icon' : 'icon-top-btn green-icon';
+            startNewChat();
+        }
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('open');
+            document.querySelector('.sidebar-overlay').style.display = sb.classList.contains('open') ? 'block' : 'none';
+        }
+        function openModal() { document.getElementById('custom-modal-overlay').style.display = 'flex'; setTimeout(() => document.getElementById('custom-modal-overlay').style.opacity = '1', 10); }
+        function closeModal() { document.getElementById('custom-modal-overlay').style.opacity = '0'; setTimeout(() => document.getElementById('custom-modal-overlay').style.display = 'none', 300); }
+        
+        async function executeClearHistory() { 
+            localStorage.removeItem('nexus_chats'); 
+            if (currentUser) {
+                try {
+                    const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
+                    const batch = db.batch();
+                    snapshot.forEach(doc => { batch.delete(doc.ref); });
+                    await batch.commit();
+                } catch (e) { console.error(e); }
+            }
+            renderHistory(); 
+            startNewChat(); 
+            closeModal(); 
+            toggleSidebar(); 
+        }
+
+        function toggleTheme() { document.documentElement.hasAttribute('data-theme') ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', 'light'); }
+        
+        // ============================================
+        // 6. MICROPHONE & SPEECH LOGIC (Erweitert)
+        // ============================================
+
+        const MIC_PATH = "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z";
+        const PAUSE_PATH = "M6 19h4V5H6v14zm8-14v14h4V5h-4z";
+
+        function setMicIcon(state) {
+            const svgPath = document.querySelector('#mic-svg path');
+            const btn = document.getElementById('mic-btn');
+            
+            if (state === 'speaking') {
+                // Pause Icon
+                svgPath.setAttribute('d', PAUSE_PATH);
+                btn.classList.remove('active-mic');
+            } else if (state === 'recording') {
+                // Mic Icon, aber rot/aktiv
+                svgPath.setAttribute('d', MIC_PATH);
+                btn.classList.add('active-mic');
+            } else {
+                // Normal Mic
+                svgPath.setAttribute('d', MIC_PATH);
+                btn.classList.remove('active-mic');
+            }
+        }
+
+        function speak(text) { 
+            // Bereinige Text von HTML/Markdown für sauberes Vorlesen
+            const cleanText = text.replace(/<[^>]*>/g, '').replace(/```[\s\S]*?```/g, 'Codeblock').replace(/[*_#]/g, '');
+            
+            window.speechSynthesis.cancel(); // Vorheriges stoppen
+            
+            isSpeaking = true;
+            setMicIcon('speaking');
+
+            const u = new SpeechSynthesisUtterance(cleanText); 
+            u.lang = 'de-DE'; 
+            
+            u.onend = () => { 
+                isSpeaking = false;
+                setMicIcon('idle');
+                if(isLive) try { recognition.start(); } catch(e){} 
+            };
+            
+            window.speechSynthesis.speak(u); 
+        }
+
+        function stopSpeaking() {
+            window.speechSynthesis.cancel();
+            isSpeaking = false;
+            setMicIcon('idle');
+        }
+
+        function toggleMic() { 
+            if (isSpeaking) {
+                // FALL 1: KI spricht -> Unterbrechen
+                stopSpeaking();
+                return;
+            }
+
+            if (isVoiceRecording) {
+                // FALL 2: Aufnahme läuft -> Abbrechen
+                try { recognition.stop(); } catch(e) {}
+                isVoiceRecording = false;
+                setMicIcon('idle');
+            } else {
+                // FALL 3: Start Aufnahme
+                try { 
+                    recognition.start(); 
+                    isVoiceRecording = true;
+                    setMicIcon('recording');
+                } catch(e) {
+                    console.error(e);
+                    // Falls Fehler (z.B. schon gestartet), Status resetten
+                    isVoiceRecording = false;
+                    setMicIcon('idle');
+                }
+            }
+        }
+
+        recognition.onstart = () => { /* Icon schon gesetzt in toggleMic */ };
+        
+        recognition.onend = () => { 
+            isVoiceRecording = false;
+            if (!isSpeaking) setMicIcon('idle'); // Nur resetten wenn nicht gerade TTS startete
+            
+            // Auto-Restart für Live Mode
+            if(isLive && !window.speechSynthesis.speaking && !isSpeaking) {
+                 try { recognition.start(); isVoiceRecording = true; setMicIcon('recording'); } catch(e){} 
+            }
+        };
+
+        recognition.onresult = (e) => { 
+            const t = e.results[0][0].transcript; 
+            addBubble(t, "user"); 
+            askAI(t, true); // true = useVoice response
+            isVoiceRecording = false;
+        };
+        
+        // Live Mode Logic wrappers
+        function startLive() { isLive = true; document.getElementById('live-overlay').style.display = 'flex'; toggleMic(); }
+        function closeLive() { isLive = false; document.getElementById('live-overlay').style.display = 'none'; window.speechSynthesis.cancel(); recognition.stop(); }
+        
+        document.getElementById('input-field').onkeypress = (e) => { if(e.key === 'Enter' && e.target.value) { handleQuickAccess(e.target.value); e.target.value = ""; } };
+    </script>
 </body>
 </html>
