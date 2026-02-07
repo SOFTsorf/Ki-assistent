@@ -66,7 +66,7 @@
         #chat-area { position: absolute; inset: 0; padding: calc(85px + env(safe-area-inset-top)) 20px 210px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .blur-fade-layer { position: fixed; bottom: 0; left: 0; width: 100%; height: 210px; z-index: 90; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); mask-image: linear-gradient(to top, black 55%, transparent 100%); pointer-events: none; }
         
-        /* NEUES GEMINI-STYLE EINGABEFELD */
+        /* GEMINI-STYLE EINGABEFELD */
         .footer { position: fixed; bottom: calc(15px + env(safe-area-inset-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; gap: 8px; }
         .gemini-input-container { 
             position: relative; 
@@ -79,7 +79,26 @@
             padding: 8px 12px 8px 20px; 
             box-sizing: border-box;
             border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
         }
+
+        /* NEU: Blau leuchtender Loader-Rahmen */
+        @keyframes border-flow {
+            from { background-position: 0% 0, 0% 0; }
+            to { background-position: 0% 0, 200% 0; }
+        }
+
+        .loading-active {
+            border: 1px solid transparent !important;
+            background-image: linear-gradient(var(--pill-bg), var(--pill-bg)), 
+                            linear-gradient(90deg, transparent, #007aff, #00f2ff, #007aff, transparent) !important;
+            background-origin: border-box !important;
+            background-clip: padding-box, border-box !important;
+            background-size: 200% 100% !important;
+            animation: border-flow 1.5s linear infinite !important;
+            box-shadow: 0 0 15px rgba(0, 122, 255, 0.4) !important;
+        }
+
         input[type="text"] { 
             flex: 1; 
             background: none; 
@@ -105,7 +124,6 @@
         .action-circle:hover { background: rgba(255,255,255,0.05); }
         .action-circle svg { fill: #e8eaed; width: 22px; height: 22px; }
         
-        /* Spezielle Icons für Live & Mic */
         .active-green svg { fill: var(--accent-green) !important; filter: drop-shadow(0 0 5px var(--accent-green)); }
 
         .bubble-container { display: flex; flex-direction: column; max-width: 85%; animation: slideUp 0.3s ease-out forwards; }
@@ -220,7 +238,7 @@
     <div class="blur-fade-layer"></div>
 
     <div class="footer">
-        <div class="gemini-input-container">
+        <div class="gemini-input-container" id="main-input-container">
             <input type="text" id="input-field" placeholder="NexusAI fragen" autocomplete="off">
             <div class="input-actions">
                 <div class="action-circle" id="mic-btn" onclick="toggleMic()">
@@ -270,11 +288,20 @@
         recognition.lang = 'de-DE';
 
         function initApp() { 
+            setLoadingState(true); // Startet Loader beim Seitenladen
             initCookieCheck(); 
             if(!localStorage.getItem('nexus_user_known')) {
                 renderHistory();
                 startNewChat();
+                setTimeout(() => setLoadingState(false), 2000);
             }
+        }
+
+        // Helper: Toggle Loader-Animation
+        function setLoadingState(active) {
+            const container = document.getElementById('main-input-container');
+            if (active) container.classList.add('loading-active');
+            else container.classList.remove('loading-active');
         }
 
         // ============================================
@@ -299,6 +326,7 @@
                 localStorage.setItem('nexus_user_known', 'true');
                 await loadChatsFromCloud();
                 updateDashboardGreeting();
+                setLoadingState(false);
             } else {
                 document.getElementById('logged-out-view').style.display = 'block';
                 document.getElementById('logged-in-view').style.display = 'none';
@@ -306,6 +334,7 @@
                 renderHistory();
                 if(!currentChatId) startNewChat();
                 updateDashboardGreeting();
+                setLoadingState(false);
             }
         });
 
@@ -325,6 +354,7 @@
 
         async function loadChatsFromCloud() {
             if (!currentUser) return;
+            setLoadingState(true); // Loader beim Sync
             try {
                 const snapshot = await db.collection('users').doc(currentUser.uid).collection('chats').get();
                 let localChats = JSON.parse(localStorage.getItem('nexus_chats') || '{}');
@@ -333,6 +363,7 @@
                 renderHistory();
                 if (chatHistory.length <= 1) startNewChat();
             } catch (e) { console.error("Sync Fehler:", e); }
+            finally { setLoadingState(false); }
         }
 
         // ============================================
@@ -393,6 +424,7 @@
             if (dashboard) dashboard.remove();
             
             document.getElementById('typing').style.display = 'block';
+            setLoadingState(true); // Loader beim Denken
             chatHistory.push({role: "user", content: text});
 
             // BILD GENERIERUNG
@@ -408,6 +440,7 @@
                     addBubble(imageHtml, "ai");
                     chatHistory.push({role: "assistant", content: `Bild generiert: ${promptText}`});
                     document.getElementById('typing').style.display = 'none';
+                    setLoadingState(false);
                     saveToLocalStorage();
                 }, 1000);
                 return;
@@ -427,10 +460,12 @@
                 chatHistory.push({role: "assistant", content: ans});
                 addBubble(ans, "ai");
                 document.getElementById('typing').style.display = 'none';
+                setLoadingState(false);
                 saveToLocalStorage();
                 if(useVoice || isLive) speak(ans);
             } catch(e) { 
                 document.getElementById('typing').style.display = 'none'; 
+                setLoadingState(false);
                 addBubble("⚠️ Fehler: Verbindung zum Server fehlgeschlagen.", "ai");
             }
         }
